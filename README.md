@@ -16,18 +16,14 @@ Suppose you've got an SGX application ready, take following steps to use mbedtls
 
 Configuration for the enclave project:
 
-1. Add `lib/include` to the `Include Directories`
-   ![include](docs/include.png)
-2. Add `lib/mbedtls_tlib.lib` as an additional dependencies
-   ![link-input](docs/link-input.png)
-3. Add `lib` to the `Library Directory`
-   ![lib](docs/lib-directory.png)
-3. Import `lib/mbedtls_tlib.edl` in your edl file
+1. Add `lib/include` to the `Include Directories` ![include](docs/include.png)
+2. Add `lib/mbedtls_tlib.lib` as an additional dependencies ![link-input](docs/link-input.png)
+3. Add `lib` to the `Library Directories` ![lib](docs/lib-directory.png)
+4. Import `lib/mbedtls_tlib.edl` in your edl file
 
 Configuration for the application project:
 
-1. Add the untrusted C file (`lib/mbedtls_u.c`) to application.
-   ![lib](docs/add-untrust.png)
+1. Add the untrusted C file (`lib/mbedtls_u.c`) to application. ![lib](docs/add-untrust.png)
 
 See `example` for a working example. 
 
