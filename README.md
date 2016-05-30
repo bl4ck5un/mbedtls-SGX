@@ -10,7 +10,7 @@ mbedtls-SGX, based on ARM's [mbedtls](https://github.com/ARMmbed/mbedtls) (previ
 
 # Usage
 
-mbedtls-SGX is implemented as an enclave library (see [SDK documentation](https://software.intel.com/sites/products/sgx-sdk-users-guide-windows/Default.htm) for terminologies. To use it, you'll first need a working SGX application (i.e. an application and an enclave). **mbedtls-SGX is only meant to be used in an enclave, not in a untrusted application**.
+mbedtls-SGX is implemented as an enclave library (see [SDK documentation](https://software.intel.com/sites/products/sgx-sdk-users-guide-windows/Default.htm) for terminologies). To use it, you'll first need a working SGX application (i.e. an application and an enclave). **mbedtls-SGX is only meant to be used in an enclave, not in a untrusted application**.
 
 Suppose you've got an SGX application ready, take following steps to use mbedtls-SGX:
 
