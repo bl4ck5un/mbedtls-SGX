@@ -1,6 +1,6 @@
 # TLS for SGX: a port of mbedtls
 
-mbedtls-SGX, based on ARM's [mbedtls](https://github.com/ARMmbed/mbedtls) (previously PolarSSL), is an implementation of TLS protocol suite and a variety of cryptographic primitives that can be in Intel SGX enclaves. In order to exclude OSes from the TCB, the core idea of this port is to have TLS layers in the enclave and only call into OSes for transport services (TCP / UDP). Treated as a big MITM, even malicious OSes can not tamper with the security of TLS.
+mbedtls-SGX, based on [mbedtls](https://github.com/ARMmbed/mbedtls) (previously PolarSSL), is an implementation of TLS protocol suite and a variety of cryptographic primitives that can be in Intel SGX enclaves. In order to exclude OSes from the TCB, the core idea of this port is to have TLS layers in the enclave and only call into OSes for transport services (TCP / UDP). Treated as a big MITM, even malicious OSes can not tamper with the security of TLS.
 
 # Source code structure
 
@@ -42,3 +42,7 @@ Due to SGX's contraints, some features have been turned off.
 In `Debugging` configuration, change `Working Directory` from `$(TargetDir)$` (or alike) to `$(OutDir)`.
 
 ![can-not-load](docs/can not load.png)
+
+# License
+
+mbedtls-SGX is open source under Apache 2.0. See LICENSE for more details.
