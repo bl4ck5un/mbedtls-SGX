@@ -59,14 +59,7 @@ static int wsa_init_done = 0;
 #else /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/time.h>
 #include <unistd.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <netdb.h>
 #include <errno.h>
 
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */

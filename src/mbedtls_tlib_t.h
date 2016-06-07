@@ -9,6 +9,8 @@
 #include "mbedtls/net_v.h"
 #include "mbedtls/timing_v.h"
 
+#include <stdlib.h> /* for size_t */
+
 #define SGX_CAST(type, item) ((type)(item))
 
 #ifdef __cplusplus
@@ -16,6 +18,7 @@ extern "C" {
 #endif
 
 
+void dummy();
 
 sgx_status_t SGX_CDECL ocall_mbedtls_net_connect(int* retval, mbedtls_net_context* ctx, const char* host, const char* port, int proto);
 sgx_status_t SGX_CDECL ocall_mbedtls_net_bind(int* retval, mbedtls_net_context* ctx, const char* bind_ip, const char* port, int proto);
