@@ -7,5 +7,15 @@
  *   Fan Zhang <bl4ck5unxx@gmail.com>
  */
 
+#ifndef SGX_LIB_DUMMY
+#define SGX_LIB_DUMMY
+
 // a dummy function
-void dummy(void);
+
+#ifdef __cplusplus
+extern "C" {
+    void dummy();
+}
+#endif
+
+#endif

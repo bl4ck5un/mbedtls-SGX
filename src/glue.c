@@ -21,14 +21,14 @@
 
 #include <stdarg.h>
 #include <stdio.h>      /* vsnprintf */
-#include "mbedtls_tlib.h"
+#include "glue.h"
 #include "sgx.h"
 #include "sgx_trts.h"
 
 // real ocall to be implemented in the Application
 extern int ocall_print_string(int* ret, char *str);
 
-int printf(const char *fmt, ...)
+int printf_sgx(const char *fmt, ...)
 {
     int ret;
     va_list ap;
@@ -46,7 +46,7 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
 {
     sgx_status_t st = sgx_read_rand(output, len);
     if (st != SGX_SUCCESS) {
-        printf("hardware_poll fails with %d\n", st);
+        printf_sgx("hardware_poll fails with %d\n", st);
         *olen = -1;
         return -1;
     }

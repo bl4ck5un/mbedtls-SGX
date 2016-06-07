@@ -3,8 +3,7 @@
 PROJECT_NAME=mbedtls_sgx
 PROJECT_EDL=$(PROJECT_NAME).edl
 
-Enclave_Name := $(PROJECT_NAME).so
-Signed_Enclave_Name := $(PROJECT_NAME).signed.so
+Enclave_Name := lib$(PROJECT_NAME).a
 Enclave_Config_File := $(PROJECT_NAME).config.xml
 
 MBEDTLS_VERSION=2.2.1
@@ -59,7 +58,7 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-Enclave_C_Files = $(PROJECT_NAME)_t.c $(wildcard $(MBEDTLS_C_DIR)/*.c) 
+Enclave_C_Files = $(PROJECT_NAME)_t.c $(wildcard $(MBEDTLS_C_DIR)/*.c) glue.c
 Enclave_Include_Paths = -I$(MBEDTLS_HEADER_DIR) -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport
 
 Enclave_C_Flags = $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
@@ -96,7 +95,7 @@ all: $(Enclave_Name)
 	@echo "You can also sign the enclave using an external signing tool. See User's Guide for more details."
 	@echo "To build the project in simulation mode set SGX_MODE=SIM. To build the project in prerelease mode set SGX_PRERELEASE=1 and SGX_MODE=HW."
 else
-all: $(Signed_Enclave_Name)
+all: $(Enclave_Name) libmbedtls_sgx_u.a
 endif
 
 
@@ -105,24 +104,23 @@ endif
 $(PROJECT_NAME)_t.c: $(SGX_EDGER8R) 
 	@$(SGX_EDGER8R) --trusted $(PROJECT_EDL) --search-path $(MBEDTLS_HEADER_DIR) \
 		--search-path $(SGX_SDK)/include
-	@echo "GEN  =>  $@"
+	@echo "GEN =>  $@"
 
-$(PROJECT_NAME)_t.o: $(PROJECT_NAME)_t.c
+%.o: %.c
 	@$(CC) $(Enclave_C_Flags) -c $< -o $@
-	@echo "CC  <=  $<"
-
-$(MBEDTLS_C_DIR)/%.o: $(MBEDTLS_C_DIR)/%.c
-	@$(CC) $(Enclave_C_Flags) -c $< -o $@
-	@echo "CC  <=  $<"
+	@echo "CC <= $<"
 
 $(Enclave_Name): $(PROJECT_NAME)_t.o $(Enclave_C_Objects)
-	@$(CXX) $^ -o $@ $(Enclave_Link_Flags)
-	@echo "LINK =>  $@"
+	@ar rcs $@ $^
+	@echo "LD => $@"
 
-$(Signed_Enclave_Name): $(Enclave_Name)
-	@$(SGX_ENCLAVE_SIGNER) sign -key ./mbedtls_sgx.pem \
-		-enclave $(Enclave_Name) -out $@ -config $(Enclave_Config_File)
-	@echo "SIGN =>  $@"
+libmbedtls_sgx_u.a: libmbedtls_sgx_u.o
+	@ar rcs $@ $^
+	@echo "LD => $@"
+
+libmbedtls_sgx_u.o: mbedtls_sgx_net.c
+	@$(CC) -Imbedtls-2.2.1/include  -c -o $@ $<
+	@echo "CC <= $<"
 
 .PHONY: clean
 

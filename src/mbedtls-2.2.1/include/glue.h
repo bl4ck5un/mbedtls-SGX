@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-int printf(const char *fmt, ...);
+int printf_sgx(const char *fmt, ...);
 
 #if defined(__cplusplus)
 }

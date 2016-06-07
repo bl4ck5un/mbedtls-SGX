@@ -23,7 +23,7 @@
 #ifndef MBEDTLS_PLATFORM_H
 #define MBEDTLS_PLATFORM_H
 
-#include "mbedtls_tlib.h"
+#include "glue.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
