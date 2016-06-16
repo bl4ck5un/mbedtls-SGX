@@ -1367,6 +1367,8 @@
  * This modules adds support for the AES-NI instructions on x86-64
  */
 #define MBEDTLS_AESNI_C
+// disable as it causes ILL
+#undef MBEDTLS_AESNI_C
 
 /**
  * \def MBEDTLS_AES_C
