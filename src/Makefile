@@ -47,6 +47,8 @@ else
         SGX_COMMON_CFLAGS += -O2
 endif
 
+SGX_COMMON_CFLAGS += -Wall
+
 ######## Enclave Settings ########
 
 ifneq ($(SGX_MODE), HW)
@@ -58,8 +60,8 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-Enclave_C_Files = $(PROJECT_NAME)_t.c $(wildcard $(MBEDTLS_C_DIR)/*.c) glue.c
-Enclave_Include_Paths = -I$(MBEDTLS_HEADER_DIR) -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport
+Enclave_C_Files = $(PROJECT_NAME)_t.c $(wildcard $(MBEDTLS_C_DIR)/*.c) glue.c log.c
+Enclave_Include_Paths = -I$(MBEDTLS_HEADER_DIR) -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I.
 
 Enclave_C_Flags = $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
 Enclave_Cpp_Flags = $(Enclave_C_Flags) -std=c++03 -nostdinc++

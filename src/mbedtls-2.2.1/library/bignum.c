@@ -58,6 +58,8 @@
 #define mbedtls_free       free
 #endif
 
+#include "log.h"
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = v; while( n-- ) *p++ = 0;
@@ -833,7 +835,6 @@ int mbedtls_mpi_cmp_abs( const mbedtls_mpi *X, const mbedtls_mpi *Y )
 int mbedtls_mpi_cmp_mpi( const mbedtls_mpi *X, const mbedtls_mpi *Y )
 {
     size_t i, j;
-
     for( i = X->n; i > 0; i-- )
         if( X->p[i - 1] != 0 )
             break;

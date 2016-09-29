@@ -44,6 +44,7 @@ int printf_sgx(const char *fmt, ...)
 // ocall for entropy collection
 int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen )
 {
+    (void)data;
     sgx_status_t st = sgx_read_rand(output, len);
     if (st != SGX_SUCCESS) {
         printf_sgx("hardware_poll fails with %d\n", st);
@@ -54,4 +55,21 @@ int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t 
         *olen = len;
         return 0;
     }
+}
+
+// ocall for hardware RNG
+int mbedtls_sgx_drbg_random( void *p_rng, unsigned char *output, size_t out_len )
+{
+    if (!output) {
+        printf_sgx("mbedtls_sgx_drbg receives NULL");
+        return -1;
+    }
+    (void)p_rng;
+    sgx_status_t st = sgx_read_rand(output, out_len);
+    if (st != SGX_SUCCESS) {
+        printf_sgx("mbedtls_sgx_drbg fails with %d\n", st);
+        return -1;
+    }
+
+    return 0;
 }

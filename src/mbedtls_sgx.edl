@@ -21,9 +21,6 @@ enclave {
         int ocall_mbedtls_net_recv_timeout( [in,out] mbedtls_net_context *ctx, [out, size=len] unsigned char *buf, size_t len, uint32_t timeout );
         void ocall_mbedtls_net_free( [in, out] mbedtls_net_context *ctx );
 
-        // entropy source
-        // int ocall_mbedtls_hardware_poll([out,size=len] unsigned char *output, size_t len, [in,out] size_t *olen );
-        
         // printf
         int ocall_print_string([in, string] const char *str);
     };

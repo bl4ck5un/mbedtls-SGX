@@ -42,6 +42,8 @@
 #include "mbedtls/hmac_drbg.h"
 #endif
 
+#include "log.h"
+
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
@@ -154,6 +156,98 @@ cleanup:
     return( ret );
 }
 
+int mbedtls_ecdsa_sign_with_v( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s, uint8_t *v,
+                const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret, key_tries, sign_tries, blind_tries;
+    mbedtls_ecp_point R;
+    mbedtls_mpi k, e, t, vv;
+
+    /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
+    if( grp && grp->N.p == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+
+    mbedtls_ecp_point_init( &R );
+    mbedtls_mpi_init( &k ); 
+    mbedtls_mpi_init( &e ); 
+    mbedtls_mpi_init( &t );
+    mbedtls_mpi_init( &vv );
+
+    sign_tries = 0;
+    do
+    {
+        /*
+         * Steps 1-3: generate a suitable ephemeral keypair
+         * and set r = xR mod n
+         */
+        key_tries = 0;
+        do
+        {
+            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( grp, &k, &R, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( r, &R.X, &grp->N ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &vv, &R.Y, &grp->N ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_int((mbedtls_mpi_uint*)v, &vv, 2));
+            *v += 27;
+
+            if( key_tries++ > 10 )
+            {
+                ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+                goto cleanup;
+            }
+        }
+        while( mbedtls_mpi_cmp_int( r, 0 ) == 0 );
+
+        /*
+         * Step 5: derive MPI from hashed message
+         */
+        MBEDTLS_MPI_CHK( derive_mpi( grp, &e, buf, blen ) );
+
+        /*
+         * Generate a random value to blind inv_mod in next step,
+         * avoiding a potential timing leak.
+         */
+        blind_tries = 0;
+        do
+        {
+            size_t n_size = ( grp->nbits + 7 ) / 8;
+            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &t, n_size, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
+
+            /* See mbedtls_ecp_gen_keypair() */
+            if( ++blind_tries > 30 )
+                return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+        }
+        while( mbedtls_mpi_cmp_int( &t, 1 ) < 0 ||
+               mbedtls_mpi_cmp_mpi( &t, &grp->N ) >= 0 );
+
+        /*
+         * Step 6: compute s = (e + r * d) / k = t (e + rd) / (kt) mod n
+         */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( s, r, d ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &e, &e, s ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &e, &e, &t ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &k, &k, &t ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( s, &k, &grp->N ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( s, s, &e ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( s, s, &grp->N ) );
+
+        if( sign_tries++ > 10 )
+        {
+            ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
+            goto cleanup;
+        }
+    }
+    while( mbedtls_mpi_cmp_int( s, 0 ) == 0 );
+
+cleanup:
+    mbedtls_ecp_point_free( &R );
+    mbedtls_mpi_free( &k ); mbedtls_mpi_free( &e ); mbedtls_mpi_free( &t );
+
+    return( ret );
+}
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
  * Deterministic signature wrapper
@@ -190,13 +284,14 @@ cleanup:
 
     return( ret );
 }
+#endif
 
+extern int mbedtls_sgx_drbg_random( void *p_rng, unsigned char *output, size_t out_len );
 int mbedtls_ecdsa_sign_bitcoin( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s, char* v,
                             const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
                             mbedtls_md_type_t md_alg )
 {
     int ret;
-    mbedtls_hmac_drbg_context rng_ctx;
     unsigned char data[2 * MBEDTLS_ECP_MAX_BYTES];
     size_t grp_len = ( grp->nbits + 7 ) / 8;
     const mbedtls_md_info_t *md_info;
@@ -215,14 +310,12 @@ int mbedtls_ecdsa_sign_bitcoin( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_
     mbedtls_mpi_init( &t );
     mbedtls_mpi_init( &vv );
     mbedtls_ecp_point_init( &R );
-    mbedtls_hmac_drbg_init( &rng_ctx );
 
 
     /* Use private key and message hash (reduced) to initialize HMAC_DRBG */
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( d, data, grp_len ) );
     MBEDTLS_MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &h, data + grp_len, grp_len ) );
-    mbedtls_hmac_drbg_seed_buf( &rng_ctx, md_info, data, 2 * grp_len );
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( grp->N.p == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -238,7 +331,7 @@ int mbedtls_ecdsa_sign_bitcoin( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_
         key_tries = 0;
         do
         {
-            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( grp, &k, &R, mbedtls_hmac_drbg_random, &rng_ctx ) );
+            MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( grp, &k, &R, mbedtls_sgx_drbg_random, NULL) );
             // r = k * G mod N
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( r, &R.X, &grp->N ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &vv, &R.Y, &grp->N ) );
@@ -250,9 +343,14 @@ int mbedtls_ecdsa_sign_bitcoin( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_
                 ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;
                 goto cleanup;
             }
+
+            if (mbedtls_mpi_cmp_int(r, 0) == 0) {
+                printf_sgx("r == 0!\n");
+            }
         }
         while( mbedtls_mpi_cmp_int( r, 0 ) == 0 );
 
+        LL_CRITICAL("Done I");
         /*
          * Step 5: derive MPI from hashed message
          */
@@ -266,7 +364,7 @@ int mbedtls_ecdsa_sign_bitcoin( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_
         do
         {
             size_t n_size = ( grp->nbits + 7 ) / 8;
-            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &t, n_size, mbedtls_hmac_drbg_random, &rng_ctx ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &t, n_size, mbedtls_sgx_drbg_random, NULL) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
 
             /* See mbedtls_ecp_gen_keypair() */
@@ -297,14 +395,13 @@ int mbedtls_ecdsa_sign_bitcoin( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_
 
 cleanup:
     mbedtls_ecp_point_free( &R );
-    mbedtls_mpi_free( &k ); mbedtls_mpi_free( &e ); mbedtls_mpi_free( &t );
-    mbedtls_hmac_drbg_free( &rng_ctx );
+    mbedtls_mpi_free( &k ); 
+    mbedtls_mpi_free( &e ); 
+    mbedtls_mpi_free( &t );
     mbedtls_mpi_free( &h );
 
     return( ret );
 }
-
-#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
