@@ -4,13 +4,38 @@ mbedtls-SGX, based on [mbedtls](https://github.com/ARMmbed/mbedtls) (previously 
 
 # Source code structure
 
-- `example`: an example application and enclave showing how to configure and link with mbedtls-SGX.
-- `lib`: release directory of mbedtls-SGX, including compiled binary (`.lib`), the `.edl` file, a untrusted component `mbedtls_u.c`, and headers (`include/`).
-- `src`: source code of mbedtls-SGX. You don't have to compile `src` to use the library.
+- `example`: an example application (Windows only for the moment) and enclave showing how to configure and link with mbedtls-SGX.
+- `lib`: release directory of mbedtls-SGX, including compiled binaries (`.lib`) for Windows and the `.edl` file.
+- `include`: headers.
+- `src`: source code of mbedtls-SGX. On Windows, you don't have to compile `src` to use the library.
 
 # Usage
 
 mbedtls-SGX is implemented as an enclave library (see [SDK documentation](https://software.intel.com/sites/products/sgx-sdk-users-guide-windows/Default.htm) for terminologies). To use it, you'll first need a working SGX application (i.e. an application and an enclave). **mbedtls-SGX is only meant to be used in an enclave, not in a untrusted application**.
+
+## Linux
+
+Simply `make` in the root directory.
+
+```
+make
+```
+
+In `lib`, you'll get two static libraries and an EDL file.
+
+```
+$ ls lib
+libmbedtls_sgx.a  libmbedtls_sgx_u.a mbedtls_sgx.edl  
+```
+
+Link `libmbedtls_sgx_u.a` to the untrusted part of your application and link
+`libmbedtls_sgx.a` to your enclave. 
+
+Be sure to include `mbedtls_sgx.edl` in your enclave's EDL file. 
+Also be sure your compiler can find the headres in `include`.
+
+## Windows 
+
 
 Suppose you've got an SGX application ready, take following steps to use mbedtls-SGX:
 
