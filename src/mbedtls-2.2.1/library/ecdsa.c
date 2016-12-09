@@ -44,6 +44,9 @@
 
 #include "log.h"
 
+const char *S_SECP256K1_N = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
+const char *S_SECP256K1_N_H = "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0";
+
 /*
  * Derive a suitable integer for group grp from a buffer of length len
  * SEC1 4.1.3 step 5 aka SEC1 4.1.4 step 3
@@ -175,6 +178,13 @@ int mbedtls_ecdsa_sign_with_v( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_m
     mbedtls_mpi_init( &t );
     mbedtls_mpi_init( &vv );
 
+    mbedtls_mpi SECP256K1_N;
+    mbedtls_mpi SECP256K1_N_H;
+    mbedtls_mpi_init(&SECP256K1_N);
+    mbedtls_mpi_init(&SECP256K1_N_H);
+    mbedtls_mpi_read_string(&SECP256K1_N, 16, S_SECP256K1_N);
+    mbedtls_mpi_read_string(&SECP256K1_N_H, 16, S_SECP256K1_N_H);
+
     sign_tries = 0;
     do
     {
@@ -186,10 +196,14 @@ int mbedtls_ecdsa_sign_with_v( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_m
         do
         {
             MBEDTLS_MPI_CHK( mbedtls_ecp_gen_keypair( grp, &k, &R, f_rng, p_rng ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( r, &R.X, &grp->N ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &vv, &R.Y, &grp->N ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_int((mbedtls_mpi_uint*)v, &vv, 2));
-            *v += 27;
+            
+            if (mbedtls_mpi_cmp_abs(&R.X, &SECP256K1_N) >= 0) {
+                *v |= 2;
+            }
+            MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( r, &R.X, &grp->N ) );
+            //*v += 27;
 
             if( key_tries++ > 10 )
             {
@@ -241,10 +255,17 @@ int mbedtls_ecdsa_sign_with_v( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_m
     }
     while( mbedtls_mpi_cmp_int( s, 0 ) == 0 );
 
+    if (mbedtls_mpi_cmp_abs(s, &SECP256K1_N_H) == 1) {
+        mbedtls_mpi_sub_abs(s, &SECP256K1_N, s);
+        *v ^= 1;
+    }
+
+    *v += 27;
+
 cleanup:
     mbedtls_ecp_point_free( &R );
     mbedtls_mpi_free( &k ); mbedtls_mpi_free( &e ); mbedtls_mpi_free( &t );
-
+    mbedtls_mpi_free(&SECP256K1_N); mbedtls_mpi_free(&SECP256K1_N_H);
     return( ret );
 }
 
