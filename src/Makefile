@@ -13,7 +13,7 @@ MBEDTLS_C_DIR=$(MBEDTLS_ROOT)/library
 
 ######## SGX SDK Settings ########
 SGX_SDK ?= /opt/intel/sgxsdk
-SGX_MODE ?= HW
+SGX_MODE ?= SIM
 SGX_ARCH ?= x64
 SGX_DEBUG = 1
 
