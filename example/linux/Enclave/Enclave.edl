@@ -1,0 +1,14 @@
+enclave {
+    from "mbedtls_sgx.edl" import *; 
+
+    trusted {
+        /* define ECALLs here. */
+        public int sgx_connect();
+        public int sgx_accept();
+    };
+
+    untrusted {
+        /* define OCALLs here. */
+    
+    };
+};
