@@ -27,7 +27,6 @@
 
 // real ocall to be implemented in the Application
 extern int ocall_print_string(int* ret, char *str);
-
 int printf_sgx(const char *fmt, ...)
 {
     int ret;

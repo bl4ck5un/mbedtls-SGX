@@ -87,18 +87,6 @@ static int wsa_init_done = 0;
 #include <time.h>
 #include <stdint.h>
 
-
-int ocall_print_string(const char *str)
-{
-    /* Proxy/Bridge will check the length and null-terminate 
-     * the input string to prevent buffer overflow. 
-     */
-    int ret = printf("%s", str);
-    fflush(stdout);
-    return ret;
-}
-
-
 /*
  * Prepare for using the sockets interface
  */
