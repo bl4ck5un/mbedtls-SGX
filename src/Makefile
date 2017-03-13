@@ -60,7 +60,7 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
-Enclave_C_Files = $(PROJECT_NAME)_t.c $(wildcard $(MBEDTLS_C_DIR)/*.c) glue.c log.c
+Enclave_C_Files = $(PROJECT_NAME)_t.c $(wildcard $(MBEDTLS_C_DIR)/*.c) glue.c
 Enclave_Include_Paths = -I$(MBEDTLS_HEADER_DIR) -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -I.
 
 Enclave_C_Flags = $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
@@ -90,8 +90,7 @@ endif
 ifeq ($(Build_Mode), HW_RELEASE)
 all: $(Enclave_Name)
 	@echo "The project has been built in release hardware mode."
-	@echo "Please sign the $(Enclave_Name) first with your signing key before you link $(Enclave_Name) with your \
-		enclave."
+	@echo "Please sign the $(Enclave_Name) first with your signing key before you link $(Enclave_Name) with your enclave."
 	@echo "To sign the enclave use the command:"
 	@echo "   $(SGX_ENCLAVE_SIGNER) sign -key <your key> -enclave $(Enclave_Name) -out <$(Signed_Enclave_Name)> -config $(Enclave_Config_File)"
 	@echo "You can also sign the enclave using an external signing tool. See User's Guide for more details."
@@ -116,11 +115,17 @@ $(Enclave_Name): $(PROJECT_NAME)_t.o $(Enclave_C_Objects)
 	@ar rcs $@ $^
 	@echo "LD => $@"
 
-libmbedtls_sgx_u.a: libmbedtls_sgx_u.o
+
+######## Untrusted parts ########
+
+UNTRUSTED_SRC_FILES := mbedtls_sgx_u_net.c mbedtls_sgx_u_std.c
+UNTRUSTED_OBJECTS := $(UNTRUSTED_SRC_FILES:.c=.u.o)
+
+libmbedtls_sgx_u.a:	$(UNTRUSTED_OBJECTS)
 	@ar rcs $@ $^
 	@echo "LD => $@"
 
-libmbedtls_sgx_u.o: mbedtls_sgx_net.c
+%.u.o: %.c
 	@$(CC) -Imbedtls-2.2.1/include  -c -o $@ $<
 	@echo "CC <= $<"
 
@@ -128,5 +133,5 @@ libmbedtls_sgx_u.o: mbedtls_sgx_net.c
 
 clean:
 	@rm -f $(Enclave_Name) $(Signed_Enclave_Name) \
-		$(Enclave_C_Objects) \
+		$(Enclave_C_Objects) $(UNTRUSTED_OBJECTS)\
 		$(PROJECT_NAME)_t.* $(PROJECT_NAME)_u.*

@@ -42,7 +42,7 @@
 #include "mbedtls/hmac_drbg.h"
 #endif
 
-#include "log.h"
+#include "glue.h"
 
 //const char *S_SECP256K1_N = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
 //const char *S_SECP256K1_N_H = "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0";
@@ -372,7 +372,6 @@ int mbedtls_ecdsa_sign_bitcoin( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_
         }
         while( mbedtls_mpi_cmp_int( r, 0 ) == 0 );
 
-        LL_CRITICAL("Done I");
         /*
          * Step 5: derive MPI from hashed message
          */
