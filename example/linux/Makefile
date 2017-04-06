@@ -135,7 +135,7 @@ Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefau
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
 	-Wl,--defsym,__ImageBase=0 \
-	-Wl,--version-script=Enclave/Enclave.lds -L. -lmbedtls_sgx
+	-Wl,--version-script=Enclave/Enclave.lds -L. -lmbedtls_sgx_t
 
 Enclave_Cpp_Objects := $(Enclave_Cpp_Files:.cpp=.o)
 Enclave_C_Objects := $(Enclave_C_Files:.c=.o)
@@ -177,8 +177,8 @@ endif
 ######## App Objects ########
 
 libmbedtls_sgx_u.a:
-	@make -C ../..
-	@mv ../../lib/libmbedtls_sgx_u.a .
+	@echo "Please compile mbedtls-SGX and copy the libmbedtls_sgx_{t,u}.a here"
+	@exit 1
 
 App/Enclave_u.c: $(SGX_EDGER8R) Enclave/Enclave.edl
 	@cd App && $(SGX_EDGER8R) --untrusted ../Enclave/Enclave.edl --search-path ../Enclave --search-path $(SGX_SDK)/include
@@ -199,10 +199,9 @@ $(App_Name): App/Enclave_u.o $(App_Cpp_Objects) libmbedtls_sgx_u.a
 
 ######## Enclave Objects ########
 
-libmbedtls_sgx.a:
-	@make -C ../..
-	@mv ../../lib/libmbedtls_sgx.a .
-
+libmbedtls_sgx_t.a:
+	@echo "Please compile mbedtls-SGX and copy the libmbedtls_sgx_{t,u}.a here"
+	@exit 1
 
 Enclave/Enclave_t.c: $(SGX_EDGER8R) Enclave/Enclave.edl
 	@cd Enclave && $(SGX_EDGER8R) --trusted ../Enclave/Enclave.edl --search-path ../Enclave --search-path $(SGX_SDK)/include
@@ -221,7 +220,7 @@ Enclave/%.o: Enclave/%.c
 	@echo "CC  <=  $<"
 
 
-$(Enclave_Name): Enclave/Enclave_t.o $(Enclave_Cpp_Objects) $(Enclave_C_Objects) libmbedtls_sgx.a
+$(Enclave_Name): Enclave/Enclave_t.o $(Enclave_Cpp_Objects) $(Enclave_C_Objects) libmbedtls_sgx_t.a
 	@$(CXX) $^ -o $@ $(Enclave_Link_Flags)
 	@echo "LINK =>  $@"
 

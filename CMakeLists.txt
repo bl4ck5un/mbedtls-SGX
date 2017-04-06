@@ -6,8 +6,8 @@ set(SGX_SDK /opt/intel/sgxsdk)
 set(SGX_ARCH x64)
 set(SGX_MODE SIM) # SGX mode: sim, hw
 # build mode: debug OR prerelease (NOT BOTH)
-set(SGX_DEBUG TRUE)
-set(SGX_PRERELEASE FALSE)
+set(SGX_DEBUG FALSE)
+set(SGX_PRERELEASE TRUE)
 
 include (cmake/Init.cmake)
 include (cmake/ConfigSGX.cmake)

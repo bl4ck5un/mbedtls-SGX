@@ -3,7 +3,7 @@
 PROJECT_NAME=mbedtls_sgx
 PROJECT_EDL=$(PROJECT_NAME).edl
 
-Enclave_Name := lib$(PROJECT_NAME).a
+Enclave_Name := lib$(PROJECT_NAME)_t.a
 Enclave_Config_File := $(PROJECT_NAME).config.xml
 
 MBEDTLS_VERSION=2.2.1
