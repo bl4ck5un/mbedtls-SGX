@@ -118,7 +118,7 @@ $(Enclave_Name): $(PROJECT_NAME)_t.o $(Enclave_C_Objects)
 
 ######## Untrusted parts ########
 
-UNTRUSTED_SRC_FILES := mbedtls_sgx_u_net.c mbedtls_sgx_u_std.c
+UNTRUSTED_SRC_FILES := ../untrusted/mbedtls_sgx_u_net.c ../untrusted/mbedtls_sgx_u_std.c
 UNTRUSTED_OBJECTS := $(UNTRUSTED_SRC_FILES:.c=.u.o)
 
 libmbedtls_sgx_u.a:	$(UNTRUSTED_OBJECTS)

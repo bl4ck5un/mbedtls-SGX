@@ -158,3 +158,6 @@ $RECYCLE.BIN/
 *.o
 *.so
 *.a
+
+.idea
+cmake-build-debug
