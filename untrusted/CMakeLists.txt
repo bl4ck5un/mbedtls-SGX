@@ -4,5 +4,5 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS} -std=c++11")
 add_library(${PROJECT_NAME}_u STATIC mbedtls_sgx_u_net.c mbedtls_sgx_u_std.c)
 
 include_directories(
-    ../src/mbedtls-2.2.1/include
+        ../trusted/mbedtls-2.2.1/include
 )

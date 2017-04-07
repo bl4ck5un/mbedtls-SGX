@@ -21,7 +21,6 @@
 
 #include "Enclave_t.h"
 #include "s_client.h"
-#include "RootCerts.h"
 #include "Log.h"
 #include "pprint.h"
 
@@ -518,34 +517,20 @@ int ssl_client(client_opt_t opt, char* headers[], int n_header, unsigned char* o
             ret = mbedtls_x509_crt_parse_file( &cacert, opt.ca_file );
     else
 #endif
-#if defined(MBEDTLS_CERTS_C)
-        for( i = 0; mbedtls_test_cas[i] != NULL; i++ )
-        {
-            ret = mbedtls_x509_crt_parse( &cacert,
-                                  (const unsigned char *) mbedtls_test_cas[i],
-                                  mbedtls_test_cas_len[i] );
-            if( ret != 0 )
-                break;
-        }
-#else
-    {
-        // load trusted crts
-        ret = mbedtls_x509_crt_parse( &cacert,
-            (const unsigned char *) root_cas_pem,
-            root_cas_pem_len);
-    }
-#endif
-    if( ret < 0 )
-    {
-        LL_CRITICAL("  mbedtls_x509_crt_parse returned -%#x", -ret);
-        goto exit;
-    }
+    // load trusted crts
+#include "ca_bundle.h"
+  ret = mbedtls_x509_crt_parse(&cacert,
+                               (const unsigned char *) mozilla_ca_bundle,
+                               sizeof mozilla_ca_bundle);
+  if (ret < 0) {
+    LL_CRITICAL("  mbedtls_x509_crt_parse returned -%#x", -ret);
+    goto exit;
+  }
 
-    if( ret != 0 )
-    {
-        LL_CRITICAL("  mbedtls_pk_parse_key returned -%#x", -ret );
-        goto exit;
-    }
+  if (ret != 0) {
+    LL_CRITICAL("  mbedtls_pk_parse_key returned -%#x", -ret);
+    goto exit;
+  }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*
@@ -931,7 +916,8 @@ send_request:
     LL_LOG("%d bytes written in %d fragments", written, frags);
     LL_LOG("%s", (char*) buf);
 
-    if (opt.debug_level > 0) hexdump("Bytes written:", buf, written);
+    if (opt.debug_level > 0)
+      hexdump("Bytes written:", buf, written);
 
     /*
      * 7. Read the HTTP response

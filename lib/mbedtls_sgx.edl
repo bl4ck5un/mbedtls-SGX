@@ -1,1 +1,1 @@
-../src/mbedtls_sgx.edl
+../trusted/mbedtls_sgx.edl

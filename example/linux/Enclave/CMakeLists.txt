@@ -4,7 +4,6 @@ set(SOURCE_FILES
         Enclave_t.c
         Log.c
         pprint.c
-        RootCerts.c
         s_client.c
         s_server.c
         )
@@ -18,8 +17,8 @@ set_directory_properties(PROPERTIES
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Enclave_t.c
         COMMAND ${SGX_EDGER8R} --trusted ${CMAKE_CURRENT_SOURCE_DIR}/Enclave.edl
-        --search-path ${TC_ROOT_DIR}/Enclave
         --search-path ${SGX_SDK}/include
+        --search-path ${MBEDTLS_SGX_ROOT_DIR}/lib
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
@@ -36,7 +35,7 @@ include_directories(
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SGX_COMMON_CFLAGS} -nostdinc -fvisibility=hidden -fpie -fstack-protector")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS} -std=c++03 -nostdinc++")
 
-set(LIB_MBEDTLS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../libmbedtls_sgx_t.a")
+set(LIB_MBEDTLS_PATH "${MBEDTLS_LIB_DIR}/libmbedtls_sgx_t.a")
 
 set_target_properties(enclave PROPERTIES PREFIX "")
 
