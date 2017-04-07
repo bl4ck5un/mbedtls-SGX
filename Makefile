@@ -1,9 +1,9 @@
 all:
-	@make -C src
+	@make -C trusted 
 	@mkdir -p lib
 	@echo "Installing.."
-	@mv -f src/*.a lib
+	@mv -f trusted/*.a lib
 	@echo "Done."
 clean:
-	@make -C src/mbedtls-2.2.1/ clean
-	@make -C src clean
+	@make -C trusted/mbedtls-2.2.1/ clean
+	@make -C trusted clean

@@ -23,7 +23,7 @@ include_directories(
         ${MBEDTLS_SGX_ROOT_DIR}/include
 )
 
-set(LIB_MBEDTLS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../libmbedtls_sgx_u.a")
+set(LIB_MBEDTLS_PATH "${MBEDTLS_LIB_DIR}/libmbedtls_sgx_u.a")
 
 target_link_libraries(s_client
         -L${SGX_LIBRARY_PATH} -l${SGX_URTS_LIB} -l${SGX_USVC_LIB}

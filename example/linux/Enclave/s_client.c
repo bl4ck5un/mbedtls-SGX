@@ -24,6 +24,8 @@
 #include "Log.h"
 #include "pprint.h"
 
+#define MBEDTLS_CONFIG_FILE "config_client.h"
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -916,8 +918,7 @@ send_request:
     LL_LOG("%d bytes written in %d fragments", written, frags);
     LL_LOG("%s", (char*) buf);
 
-    if (opt.debug_level > 0)
-      hexdump("Bytes written:", buf, written);
+    mbedtls_debug_print_buf(&ssl, 0, __FILE__, __LINE__, "bytes written: ", buf, written);
 
     /*
      * 7. Read the HTTP response
@@ -962,7 +963,7 @@ send_request:
             len = ret;
 
             LL_LOG( "get %d bytes ending with %x", len, output[len-1]);
-            if (opt.debug_level> 0) hexdump("REPONSE:", output, len);
+          mbedtls_debug_print_buf(&ssl, 0, __FILE__, __LINE__, "response", output, len);
             // TODO: Add full-fledge HTTP parser here
             // possibly from libcurl
             if( ret > 0 && (output[len-1] == '\n' || output[len-1] == '}'))
