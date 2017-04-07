@@ -21,6 +21,8 @@
 
 #include "Log.h"
 
+#define MBEDTLS_CONFIG_FILE "config_srv.h"
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -32,7 +34,7 @@
 #else
 #include <stdio.h>
 #define mbedtls_free       free
-#define mbedtls_calloc    calloc
+#define mbedtls_calloc     calloc
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
 #endif
@@ -94,7 +96,7 @@ int main( void )
 
 #define DFL_SERVER_ADDR         "127.0.0.1"
 #define DFL_SERVER_PORT         "4433"
-#define DFL_DEBUG_LEVEL         0
+#define DFL_DEBUG_LEVEL         9
 #define DFL_NBIO                0
 #define DFL_READ_TIMEOUT        0
 #define DFL_CA_FILE             ""
@@ -1479,7 +1481,8 @@ int ssl_server()
         // disabled for PoC
 #else
 #if defined(MBEDTLS_RSA_C)
-        if( ( ret = mbedtls_x509_crt_parse( &srvcert,
+      LL_CRITICAL("loading RSA certs" );
+      if( ( ret = mbedtls_x509_crt_parse( &srvcert,
                                     (const unsigned char *) mbedtls_test_srv_crt_rsa,
                                     mbedtls_test_srv_crt_rsa_len ) ) != 0 )
         {

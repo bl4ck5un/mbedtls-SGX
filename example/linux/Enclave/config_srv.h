@@ -1,3 +1,6 @@
+#ifndef MBEDTLS_SGX_CONFIG_SRV_H_H
+#define MBEDTLS_SGX_CONFIG_SRV_H_H
+
 /**
  * \file config.h
  *
@@ -2520,6 +2523,9 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
-#include "check_config.h"
+#include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */
+
+
+#endif //MBEDTLS_SGX_CONFIG_SRV_H_H

@@ -61,7 +61,7 @@ int main()
     client();
 
 exit:
-    printf("%%Info: all enclave closed successfully.\n");
-    printf("%%Enter a character before exit ...\n");
+    printf("Info: all enclave closed successfully.\n");
+    printf("Enter a character before exit ...\n");
     return 0;
 }
