@@ -17,7 +17,7 @@ add_custom_command(
 
 add_executable(s_client ${CLIENT_SRC_FILES})
 add_executable(s_server Enclave_u.c s_server.cpp Utils.cpp)
-add_executable(ssl_pthread_server ssl_pthread_server.cpp mbedtls_net.c mbedtls_error.c Enclave_u.c Utils.cpp)
+add_executable(m_server m_server.cpp mbedtls_net.c mbedtls_error.c Enclave_u.c Utils.cpp)
 
 include_directories(
         ${SGXSDK_INCLUDE_DIRS}
@@ -40,7 +40,7 @@ target_link_libraries(s_server
         -Wl,-rpath -Wl,${SGX_LIBRARY_PATH}
         -lpthread)
 
-target_link_libraries(ssl_pthread_server
+target_link_libraries(m_server
         -L${SGX_LIBRARY_PATH} -l${SGX_URTS_LIB} -l${SGX_USVC_LIB}
         ${LIB_MBEDTLS_PATH}
         -Wl,-rpath -Wl,/usr/local/lib
@@ -49,4 +49,4 @@ target_link_libraries(ssl_pthread_server
 
 add_dependencies(s_client enclave)
 add_dependencies(s_server enclave)
-add_dependencies(ssl_pthread_server enclave)
+add_dependencies(m_server enclave)
