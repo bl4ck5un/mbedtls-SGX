@@ -1,11 +1,11 @@
 set(SOURCE_FILES
-        ecalls.c
-        Enclave.cpp
+        ecalls.cpp
         Enclave_t.c
         Log.c
         pprint.c
         s_client.c
         s_server.c
+        ssl_conn_hdlr.cpp
         )
 
 add_definitions(-DENCLAVE_STD_ALT)

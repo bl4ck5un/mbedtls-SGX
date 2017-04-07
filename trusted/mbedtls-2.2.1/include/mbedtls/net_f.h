@@ -143,6 +143,7 @@ void mbedtls_net_usleep( unsigned long usec );
  *                 MBEDTLS_ERR_SSL_WANT_READ indicates read() would block.
  */
 int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len );
+int mbedtls_sgx_net_recv( void *ctx, unsigned char *buf, size_t len );
 
 /**
  * \brief          Write at most 'len' characters. If no error occurs,

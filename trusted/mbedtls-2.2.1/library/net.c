@@ -158,11 +158,26 @@ void mbedtls_net_usleep( unsigned long usec )
 /*
  * Read at most 'len' characters
  */
-int mbedtls_net_recv( void *ctx, unsigned char *buf, size_t len )
-{
-    int ret;
-    ocall_mbedtls_net_recv(&ret, (mbedtls_net_context*) ctx, buf, len);
-    return ret;
+int mbedtls_net_recv(void *ctx, unsigned char *buf, size_t len) {
+  int ret;
+  sgx_status_t ocall_ret;
+  ocall_ret = ocall_mbedtls_net_recv(&ret, (mbedtls_net_context *) ctx, buf, len);
+  if (SGX_SUCCESS != ocall_ret) {
+    mbedtls_printf("ocall returned %#x", ocall_ret);
+    return MBEDTLS_ERR_NET_SEND_FAILED;
+  }
+  return ret;
+}
+
+int mbedtls_sgx_net_recv(void *ctx, unsigned char *buf, size_t len) {
+  int ret;
+  sgx_status_t ocall_ret;
+  ocall_ret = ocall_mbedtls_net_recv(&ret, (mbedtls_net_context *) ctx, buf, len);
+  if (SGX_SUCCESS != ocall_ret) {
+    mbedtls_printf("ocall_mbedtls_net_recv returned %#x\n", ocall_ret);
+    return MBEDTLS_ERR_NET_RECV_FAILED;
+  }
+  return ret;
 }
 
 /*
