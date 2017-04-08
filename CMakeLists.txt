@@ -4,10 +4,9 @@ project(mbedtls_sgx)
 
 set(SGX_SDK /opt/intel/sgxsdk)
 set(SGX_ARCH x64)
-set(SGX_MODE SIM) # SGX mode: sim, hw
-# build mode: debug OR prerelease (NOT BOTH)
-set(SGX_DEBUG FALSE)
-set(SGX_PRERELEASE TRUE)
+set(SGX_MODE SIM CACHE STRING "SGX mode: SIM or HW") # SGX mode: sim, hw
+set(COMPILE_EXAMPLES NO CACHE BOOL "Build examples")
+set(SGX_BUILD DEBUG CACHE STRING "Build: DEBUG, PRERELEASE or RELEASE")
 
 include (cmake/Init.cmake)
 include (cmake/ConfigSGX.cmake)
@@ -21,4 +20,7 @@ set(MBEDTLS_LIB_DIR ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 add_subdirectory(trusted)
 add_subdirectory(untrusted)
 
-add_subdirectory(example/linux)
+
+if (COMPILE_EXAMPLES)
+    add_subdirectory(example/linux)
+endif()
