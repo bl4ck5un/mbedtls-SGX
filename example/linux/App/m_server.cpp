@@ -20,6 +20,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+
 #include <stdio.h>
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
@@ -27,22 +28,20 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+#include <iostream>
+#include <atomic>
+#include <csignal>
 
 #include "mbedtls/ssl.h"
 #include "mbedtls/net_v.h"
 #include "mbedtls/net_f.h"
 #include "mbedtls/error.h"
-
 #include "Enclave_u.h"
-#include "../common/ssl_context.h"
-#include <pthread.h>
-
-
 #include "Utils.h"
-#include <iostream>
-#include <atomic>
-#include <csignal>
-#include <mbedtls/net_v.h>
+
+#include <sgx_urts.h>
+#include <thread>
 
 using std::cerr;
 using std::endl;
@@ -55,13 +54,14 @@ typedef struct {
 } pthread_info_t;
 
 #define MAX_NUM_THREADS 5
+
 static pthread_info_t threads[MAX_NUM_THREADS];
 sgx_enclave_id_t eid;
 
 // thread function
 void *ecall_handle_ssl_connection(void *data) {
   long int thread_id = pthread_self();
-  thread_info_t* thread_info = (thread_info_t*) data;
+  thread_info_t *thread_info = (thread_info_t *) data;
   ssl_conn_handle(eid, thread_id, thread_info);
 
   cerr << "thread exiting for thread " << thread_id << endl;
@@ -87,7 +87,6 @@ static int thread_create(mbedtls_net_context *client_fd) {
   if (i == MAX_NUM_THREADS)
     return (-1);
 
-  mbedtls_printf("using thread %d\n", i);
   threads[i].active = 1;
   threads[i].data.config = NULL;
   threads[i].data.thread_complete = 0;
@@ -100,14 +99,13 @@ static int thread_create(mbedtls_net_context *client_fd) {
   return (0);
 }
 
-
 std::atomic<bool> quit(false);
-void exitGraceful(int) { quit.store(true);}
+void exitGraceful(int) { quit.store(true); }
 
 int main(void) {
   int ret;
-  //! register Ctrl-C handler
-//  std::signal(SIGINT, exitGraceful);
+  // register Ctrl-C handler
+  std::signal(SIGINT, exitGraceful);
 
   if (0 != initialize_enclave(&eid)) {
     cerr << "failed to init enclave" << endl;
@@ -125,12 +123,22 @@ int main(void) {
 
   if ((ret = mbedtls_net_bind(&listen_fd, NULL, "4433", MBEDTLS_NET_PROTO_TCP)) != 0) {
     mbedtls_printf(" failed\n  ! mbedtls_net_bind returned %d\n\n", ret);
-    goto exit;
+    std::exit(-1);
   }
 
   mbedtls_printf(" ok\n");
 
+  mbedtls_printf("  [ main ]  Waiting for a remote connection\n");
+
+  // non-block accept
   while (true) {
+    // check for Ctrl-C flag
+    std::this_thread::sleep_for (std::chrono::seconds(1));
+    if (quit.load()) {
+      cerr << "Ctrl-C pressed. Quiting..." << endl;
+      break;
+    }
+
 #ifdef MBEDTLS_ERROR_C
     if (ret != 0) {
       char error_buf[100];
@@ -142,12 +150,17 @@ int main(void) {
     /*
      * 3. Wait until a client connects
      */
-    mbedtls_printf("  [ main ]  Waiting for a remote connection\n");
 
-    if ((ret = mbedtls_net_accept(&listen_fd, &client_fd,
-                                  NULL, 0, NULL)) != 0) {
+    if (0 != mbedtls_net_set_nonblock(&listen_fd)) {
+      cerr << "can't set nonblock for the listen socket" << endl;
+    }
+    ret = mbedtls_net_accept(&listen_fd, &client_fd, NULL, 0, NULL);
+    if (ret == MBEDTLS_ERR_SSL_WANT_READ) {
+      ret = 0;
+      continue;
+    } else if (ret != 0) {
       mbedtls_printf("  [ main ] failed: mbedtls_net_accept returned -0x%04x\n", ret);
-      goto exit;
+      break;
     }
 
     mbedtls_printf("  [ main ]  ok\n");
@@ -159,7 +172,8 @@ int main(void) {
       continue;
     }
     ret = 0;
-  }
-exit:
+  } // while (true)
+
+  sgx_destroy_enclave(eid);
   return (ret);
 }
