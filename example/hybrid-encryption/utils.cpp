@@ -2,8 +2,9 @@
 #include "sgx_uae_service.h"
 
 #include <stdio.h>
+#include <string.h>
 
-#include "Utils.h"
+#include "utils.h"
 
 #ifdef _MSC_VER
 # include <Shlobj.h>
@@ -100,7 +101,7 @@ int initialize_enclave(sgx_enclave_id_t *eid)
 #endif
     /* Step 2: call sgx_create_enclave to initialize an enclave instance */
     /* Debug Support: set 2nd parameter to 1 */
-    ret = sgx_create_enclavea(ENCLAVE_FILENAME, SGX_DEBUG_FLAG, &token, &updated, eid, NULL);
+    ret = sgx_create_enclave(ENCLAVE_FILENAME, SGX_DEBUG_FLAG, &token, &updated, eid, NULL);
     if (ret != SGX_SUCCESS) {
         printf("sgx_create_enclave returned %#x\n", ret);
         print_error_message(ret);

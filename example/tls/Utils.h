@@ -12,11 +12,11 @@
 #endif
 
 #if defined(_MSC_VER)
-#define TOKEN_FILENAME   "ExampleEnclave.token"
-#define ENCLAVE_FILENAME "ExampleEnclave.signed.dll"
+#define TOKEN_FILENAME   "Enclave.token"
+#define ENCLAVE_FILENAME "Enclave.signed.dll"
 #elif defined(__GNUC__)
-# define TOKEN_FILENAME   ""
-# define ENCLAVE_FILENAME ""
+#define TOKEN_FILENAME   "enclave.token"
+#define ENCLAVE_FILENAME "enclave.signed.so"
 #endif
 
 void print_error_message(sgx_status_t ret);

@@ -10,16 +10,16 @@ set(SOURCE_FILES
 
 add_definitions(-DENCLAVE_STD_ALT)
 
-# TODO: correct the typo in Town Cirer (_u -> _t)
 set_directory_properties(PROPERTIES
         ADDITIONAL_MAKE_CLEAN_FILES "Enclave_t.c; Enclave_t.h")
 
 add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Enclave_t.c
-        COMMAND ${SGX_EDGER8R} --trusted ${CMAKE_CURRENT_SOURCE_DIR}/Enclave.edl
+        OUTPUT Enclave_t.c
+        COMMAND ${SGX_EDGER8R} --trusted Enclave.edl
         --search-path ${SGX_SDK}/include
         --search-path ${MBEDTLS_SGX_ROOT_DIR}/lib
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        --search-path ${CMAKE_CURRENT_SOURCE_DIR}
+        WORKING_DIRECTORY .
 )
 
 add_library(enclave SHARED ${SOURCE_FILES})
@@ -50,8 +50,9 @@ target_link_libraries(enclave "${SGX_COMMON_CFLAGS} \
 add_custom_command(TARGET enclave
         POST_BUILD
         COMMAND ${SGX_ENCLAVE_SIGNER} sign
-        -key ${CMAKE_CURRENT_SOURCE_DIR}/Enclave_private.pem
-        -config ${CMAKE_CURRENT_SOURCE_DIR}/Enclave.config.xml
+        -key Enclave_private.pem
+        -config Enclave.config.xml
         -enclave ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/enclave.so
         -out ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/enclave.signed.so
-        COMMENT "Signing the enclave. Written to ${CMAKE_BINARY_DIR}")
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Signing the enclave => ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/enclave.signed.so")

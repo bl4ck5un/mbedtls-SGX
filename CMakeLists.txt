@@ -20,7 +20,8 @@ set(MBEDTLS_LIB_DIR ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 add_subdirectory(trusted)
 add_subdirectory(untrusted)
 
+SET(COMPILE_EXAMPLES YES)
 
 if (COMPILE_EXAMPLES)
-    add_subdirectory(example/linux)
+    add_subdirectory(example)
 endif()

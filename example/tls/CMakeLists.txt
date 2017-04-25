@@ -9,7 +9,7 @@ set_directory_properties(PROPERTIES
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Enclave_u.c
         COMMAND ${SGX_EDGER8R} --untrusted Enclave.edl
-        --search-path ${CMAKE_CURRENT_SOURCE_DIR}/../Enclave/ # Enclave.edl
+        --search-path ../enclave/ # enclave.edl
         --search-path ${SGX_SDK}/include
         --search-path ${MBEDTLS_SGX_ROOT_DIR}/lib # mbedtls_sgx.edl
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

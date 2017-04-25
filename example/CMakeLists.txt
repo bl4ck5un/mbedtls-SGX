@@ -16,8 +16,10 @@
 
 # TODO: see if possible to conditionally run above commands based on the mode (e.g. being added or using as the root CMakeLists.txt)
 
-# TODO: convert to absolute path using this: https://stackoverflow.com/questions/39027269/cmake-convert-relative-path-to-absolute-path-with-build-directory-as-current-d
-set(MBEDTLS_SGX_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../")
+# TODO: convert to absolute path using this:
+get_filename_component(MBEDTLS_SGX_ROOT_DIR ".." REALPATH BASE_DIR "${CMAKE_BINARY_DIR}")
+message(STATUS "MBEDTLS_SGX_ROOT_DIR: ${MBEDTLS_SGX_ROOT_DIR}")
 
-add_subdirectory(App)
-add_subdirectory(Enclave)
+add_subdirectory(tls)
+add_subdirectory(hybrid-encryption)
+add_subdirectory(enclave)

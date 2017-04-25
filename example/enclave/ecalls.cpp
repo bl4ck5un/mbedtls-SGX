@@ -1,5 +1,5 @@
 #include "Enclave_t.h"
-#include "s_client.h"
+#include "enc.h"
 #include "s_server.h"
 #include "Log.h"
 
