@@ -20,22 +20,20 @@ int main(int argc, const char *argv[]) {
 
   HybridEncryption encrypt;
   try {
-    HybridEncryption::ECPointBuffer server_pubkey;
+    ECPointBuffer server_pubkey;
     mbedtls_mpi server_seckey;
     mbedtls_mpi_init(&server_seckey);
     encrypt.initServer(&server_seckey, server_pubkey);
 
-    HybridEncryption::ECPointBuffer user_pubkey;
-    encrypt.hybridEncrypt(server_pubkey, user_pubkey);
-    encrypt.hybridDecrypt(user_pubkey, &server_seckey);
+    ECPointBuffer user_pubkey;
 
     uint8_t text[100];
     memset(text, 0x92, sizeof text);
     uint8_t cipher[100];
 
-    HybridEncryption::GCMTag tag;
-    HybridEncryption::AESKey key;
-    HybridEncryption::AESIv iv;
+    GCMTag tag;
+    AESKey key;
+    AESIv iv;
 
     encrypt.fill_random(key, sizeof key);
     encrypt.fill_random(iv, sizeof iv);
@@ -43,15 +41,17 @@ int main(int argc, const char *argv[]) {
     encrypt.hexdump("key", key, sizeof key);
     encrypt.hexdump("iv", iv, sizeof iv);
 
-    encrypt.aes_gcm_256_enc(key, iv, text, sizeof text, tag, cipher);
+    HybridCiphertext ciphertext;
+    encrypt.hybridEncrypt(server_pubkey, iv,
+                          text, sizeof text,
+                          ciphertext);
+    encrypt.hexdump("tag", ciphertext.gcm_tag, sizeof ciphertext.gcm_tag);
+    encrypt.hexdump("ciphertext", ciphertext.data.data(), ciphertext.data.size());
 
-    encrypt.hexdump("tag", tag, sizeof tag);
-    encrypt.hexdump("ciphertext", cipher, sizeof cipher);
+    vector<uint8_t> cleartext;
+    encrypt.hybridDecrypt(ciphertext, &server_seckey, cleartext);
 
-    uint8_t temp[100];
-    encrypt.aes_gcm_256_dec(key, iv, cipher, sizeof cipher, tag, temp);
-
-    encrypt.hexdump("decrypted", temp, sizeof temp);
+    encrypt.hexdump("decrypted", cleartext.data(), cleartext.size());
   }
   catch (const exception& e) {
     cerr << e.what() << endl;

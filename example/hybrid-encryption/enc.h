@@ -16,6 +16,8 @@
 #include <string.h>
 
 #include <exception>
+#include <vector>
+
 using namespace std;
 
 #define DEBUG_BUFFER(title, buf, len) do { \
@@ -34,12 +36,21 @@ static void my_debug(void *ctx, int level, const char *file, int line,
   mbedtls_printf("%s:%d: %s", file, line, str);
 }
 
+typedef uint8_t AESKey[32];
+typedef uint8_t AESIv[32];
+typedef uint8_t GCMTag[16];
+typedef uint8_t ECPointBuffer[65];
+
+class HybridCiphertext {
+ public:
+  ECPointBuffer user_pubkey;
+  AESIv aes_iv;
+  GCMTag gcm_tag;
+  vector<uint8_t> data;
+};
+
 class HybridEncryption {
  public:
-  typedef uint8_t AESKey[32];
-  typedef uint8_t AESIv[32];
-  typedef uint8_t GCMTag[16];
-  typedef uint8_t ECPointBuffer[65];
   static const mbedtls_ecp_group_id EC_GROUP = MBEDTLS_ECP_DP_SECP256K1;
  private:
   // general setup
@@ -135,7 +146,7 @@ class HybridEncryption {
     CHECK_RET(ret);
   }
 
-  void hybridDecrypt(const ECPointBuffer user_pubkey, const mbedtls_mpi* secret_key) {
+  void hybridDecrypt(const HybridCiphertext& ciphertext, const mbedtls_mpi* secret_key, vector<uint8_t>& cleartext) {
     mbedtls_ecdh_context ctx_tc;
     mbedtls_ecdh_init(&ctx_tc);
 
@@ -150,7 +161,7 @@ class HybridEncryption {
     mbedtls_mpi_copy(&ctx_tc.d, secret_key);
 
     // load user's public key
-    load_pubkey(&ctx_tc.grp, &ctx_tc.Qp, user_pubkey);
+    load_pubkey(&ctx_tc.grp, &ctx_tc.Qp, ciphertext.user_pubkey);
 
     // compute the shared secret
     ret = mbedtls_ecdh_compute_shared(&ctx_tc.grp, &ctx_tc.z,
@@ -162,9 +173,22 @@ class HybridEncryption {
     }
 
     mbedtls_debug_print_mpi(&dummy_ssl_ctx, 0, __FILE__, __LINE__, "derived secret", &ctx_tc.z);
+
+    AESKey aes_key;
+    mbedtls_mpi_write_binary(&ctx_tc.z, aes_key, sizeof(AESKey));
+
+    cleartext.clear();
+    cleartext.resize(ciphertext.data.size());
+    aes_gcm_256_dec(aes_key, ciphertext.aes_iv,
+                    ciphertext.data.data(), ciphertext.data.size(),
+                    ciphertext.gcm_tag, cleartext.data());
   }
 
-  void hybridEncrypt(const ECPointBuffer tc_pubkey, ECPointBuffer pubkey) {
+  void hybridEncrypt(const ECPointBuffer tc_pubkey,
+                     const AESIv aes_iv,
+                     const uint8_t* data,
+                     size_t data_len,
+                     HybridCiphertext& ciphertext) {
     mbedtls_ecdh_context ctx_user;
     mbedtls_ecdh_init(&ctx_user);
 
@@ -177,13 +201,11 @@ class HybridEncryption {
                                   mbedtls_ctr_drbg_random, &ctr_drbg);
     CHECK_RET_GO(ret, cleanup);
 
-    dump_pubkey(&ctx_user.grp, &ctx_user.Q, pubkey);
+    dump_pubkey(&ctx_user.grp, &ctx_user.Q, ciphertext.user_pubkey);
 
     // populate with the tc public key
-    // z == 1 means Z != infty
     ret = mbedtls_mpi_lset(&ctx_user.Qp.Z, 1);
     CHECK_RET_GO(ret, cleanup);
-
     load_pubkey(&ctx_user.grp, &ctx_user.Qp, tc_pubkey);
 
     // derive shared secret
@@ -193,6 +215,22 @@ class HybridEncryption {
     CHECK_RET_GO(ret, cleanup);
 
     mbedtls_debug_print_mpi(&dummy_ssl_ctx, 0, __FILE__, __LINE__, "derived secret", &ctx_user.z);
+
+    // load aes key
+    AESKey aes_key;
+    mbedtls_mpi_write_binary(&ctx_user.z, aes_key, sizeof(AESKey));
+
+    DEBUG_BUFFER("clear text", data, data_len);
+    DEBUG_BUFFER("aes key", aes_key, sizeof(AESKey));
+
+    ciphertext.data.clear();
+    ciphertext.data.reserve(data_len);
+    aes_gcm_256_enc(aes_key, aes_iv, data, data_len, ciphertext.gcm_tag, ciphertext.data);
+
+    memcpy(ciphertext.aes_iv, aes_iv, sizeof(AESIv));
+
+    DEBUG_BUFFER("cipher", ciphertext.data.data(), ciphertext.data.size());
+
   cleanup:
     mbedtls_ecdh_free(&ctx_user);
     if (ret) throw runtime_error(err(ret));
@@ -201,24 +239,27 @@ class HybridEncryption {
 
   void aes_gcm_256_enc(const AESKey aesKey, const AESIv iv,
                        const uint8_t* data, size_t data_len,
-                       GCMTag tag, uint8_t* cipher) {
+                       GCMTag tag, vector<uint8_t>& cipher) {
     mbedtls_gcm_context ctx;
     mbedtls_gcm_init(&ctx);
 
     mbedtls_gcm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, aesKey, 8 * sizeof(AESKey));
 
+    uint8_t _cipher[data_len];
     ret = mbedtls_gcm_crypt_and_tag(&ctx, MBEDTLS_GCM_ENCRYPT, data_len,
                                     iv, sizeof(AESIv),
                                     NULL, 0,
                                     data,
-                                    cipher, sizeof(GCMTag), tag);
+                                    _cipher, sizeof(GCMTag), tag);
+
+    cipher.insert(cipher.begin(), _cipher, _cipher + data_len);
     mbedtls_gcm_free(&ctx);
     CHECK_RET(ret);
   }
 
   void aes_gcm_256_dec(const AESKey aesKey, const AESIv iv,
                        const uint8_t* ciphertext, size_t ciphertext_len,
-                       GCMTag tag, uint8_t* cleartext) {
+                       const GCMTag tag, uint8_t* cleartext) {
     mbedtls_gcm_context ctx;
     mbedtls_gcm_init(&ctx);
 
@@ -233,5 +274,6 @@ class HybridEncryption {
     CHECK_RET(ret);
   }
 };
+
 
 #endif //MBEDTLS_SGX_ENC_H
