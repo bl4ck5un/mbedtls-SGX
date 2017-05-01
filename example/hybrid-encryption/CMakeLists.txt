@@ -13,7 +13,7 @@ add_custom_command(
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(enc enc.cpp)
+add_executable(enc enc.cpp base64.c)
 
 target_link_libraries(enc -lmbedtls -lmbedx509 -lmbedcrypto)
 

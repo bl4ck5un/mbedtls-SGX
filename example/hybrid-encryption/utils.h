@@ -34,9 +34,9 @@ extern "C" {
 
 
 typedef struct _sgx_errlist_t {
-    sgx_status_t err;
-    const char *msg;
-    const char *sug; /* Suggestion */
+  sgx_status_t err;
+  const char *msg;
+  const char *sug; /* Suggestion */
 } sgx_errlist_t;
 
 /* Error code returned by sgx_create_enclave */
