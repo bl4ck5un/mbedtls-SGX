@@ -15,7 +15,6 @@ add_custom_command(
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(hybrid-enc hybrid.cpp utils.cpp Enclave_u.c)
 add_executable(enc enc.cpp)
 
 target_include_directories(enc PRIVATE
