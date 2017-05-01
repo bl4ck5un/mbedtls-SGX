@@ -17,8 +17,64 @@
 
 #include <exception>
 #include <vector>
+#include <string>
+#include <iostream>
+
+#include "base64.h"
 
 using namespace std;
+
+static void hexDump(const char *desc, const void *addr, size_t len) {
+  int i;
+  unsigned char buff[17];
+  unsigned char *pc = (unsigned char *) addr;
+
+  // Output description if given.
+  if (desc != NULL)
+    printf("%s:\n", desc);
+
+  if (len == 0) {
+    printf("  empty!\n");
+    return;
+  }
+  if (len < 0) {
+    printf("  NEGATIVE LENGTH: %zu\n", len);
+    return;
+  }
+
+  // Process every byte in the data.
+  for (i = 0; i < len; i++) {
+    // Multiple of 16 means new line (with line offset).
+
+    if ((i % 16) == 0) {
+      // Just don't print ASCII for the zeroth line.
+      if (i != 0)
+        printf("  %s\n", buff);
+
+      // Output the offset.
+      printf("  %04x ", i);
+    }
+
+    // Now the hex code for the specific character.
+    printf(" %02x", pc[i]);
+
+    // And store a printable ASCII character for later.
+    if ((pc[i] < 0x20) || (pc[i] > 0x7e))
+      buff[i % 16] = '.';
+    else
+      buff[i % 16] = pc[i];
+    buff[(i % 16) + 1] = '\0';
+  }
+
+  // Pad out last line if not exactly 16 characters.
+  while ((i % 16) != 0) {
+    printf("   ");
+    i++;
+  }
+
+  // And print the final ASCII bit.
+  printf("  %s\n", buff);
+}
 
 #define DEBUG_BUFFER(title, buf, len) do { \
   mbedtls_debug_print_buf(&dummy_ssl_ctx, 0, __FILE__,__LINE__, title, buf, len); } \
@@ -43,10 +99,17 @@ typedef uint8_t ECPointBuffer[65];
 
 class HybridCiphertext {
  public:
+  static constexpr size_t USER_PUBKEY_LEN = sizeof(ECPointBuffer);
+  static constexpr size_t AES_IV_LEN = sizeof(AESIv);
+  static constexpr size_t GCM_TAG_LEN = sizeof(GCMTag);
+  static constexpr size_t HEADER_LEN = USER_PUBKEY_LEN + AES_IV_LEN + GCM_TAG_LEN;
+
   ECPointBuffer user_pubkey;
   AESIv aes_iv;
   GCMTag gcm_tag;
   vector<uint8_t> data;
+
+  HybridCiphertext(){};
 };
 
 class HybridEncryption {
@@ -55,6 +118,7 @@ class HybridEncryption {
  private:
   // general setup
   const size_t PUBLIC_KEY_SIZE = 65;
+  const AESIv iv {0x99};
 
   char err_msg[1024];
   int ret;
@@ -113,14 +177,53 @@ class HybridEncryption {
     if ((ret = mbedtls_ssl_setup(&dummy_ssl_ctx, &dummy_ssl_cfg)) != 0) {
       cout << ret << endl;
     };
-    mbedtls_debug_set_threshold(100);
+
+    mbedtls_debug_set_threshold(-1);
+  }
+
+  void dumpCiphertext(const HybridCiphertext& ciphertext) {
+    hexDump("user pubkey", ciphertext.user_pubkey, ciphertext.USER_PUBKEY_LEN);
+    hexDump("aes iv", ciphertext.aes_iv, ciphertext.AES_IV_LEN);
+    hexDump("gcm tag", ciphertext.gcm_tag, ciphertext.GCM_TAG_LEN);
+    hexDump("cipher text", ciphertext.data.data(), ciphertext.data.size());
+  }
+
+  string encode(const HybridCiphertext& ciphertext) {
+    vector<uint8_t> tmp_buf;
+    tmp_buf.insert(tmp_buf.end(), begin(ciphertext.user_pubkey), end(ciphertext.user_pubkey));
+    tmp_buf.insert(tmp_buf.end(), begin(ciphertext.aes_iv), end(ciphertext.aes_iv));
+    tmp_buf.insert(tmp_buf.end(), begin(ciphertext.gcm_tag), end(ciphertext.gcm_tag));
+    tmp_buf.insert(tmp_buf.end(), begin(ciphertext.data), end(ciphertext.data));
+
+    size_t _encoded_len;
+    char* _r;
+    string r((_r = reinterpret_cast<char*>(base64_encode(tmp_buf.data(), tmp_buf.size(), &_encoded_len))));
+
+    free(_r);
+    return r;
+  }
+
+  HybridCiphertext decode(const string& cipher_b64) {
+    HybridCiphertext ciphertext;
+    size_t o_len;
+    unsigned char* cipher = base64_decode(reinterpret_cast<const unsigned char*>(cipher_b64.c_str()), cipher_b64.size(), &o_len);
+    unsigned char* const p_cipher = cipher;
+
+    memcpy(ciphertext.user_pubkey, cipher, ciphertext.USER_PUBKEY_LEN); cipher += ciphertext.USER_PUBKEY_LEN;
+    memcpy(ciphertext.aes_iv, cipher, ciphertext.AES_IV_LEN); cipher += ciphertext.AES_IV_LEN;
+    memcpy(ciphertext.gcm_tag, cipher, ciphertext.GCM_TAG_LEN); cipher += ciphertext.GCM_TAG_LEN;
+    ciphertext.data.insert(ciphertext.data.end(), cipher, cipher + o_len - ciphertext.HEADER_LEN);
+
+    free(p_cipher);
+
+    return ciphertext;
   }
 
   void fill_random(unsigned char* out, size_t len) {
     mbedtls_ctr_drbg_random(&ctr_drbg, out, len);
   }
 
-  void hexdump(const char* title, uint8_t* buf, size_t len) {
+  void debug_dump(const char *title, uint8_t *buf, size_t len) {
     DEBUG_BUFFER(title, buf, len);
   }
 
@@ -131,8 +234,6 @@ class HybridEncryption {
     // load the group
     ret = mbedtls_ecp_group_load(&ecdh_ctx_tc.grp, EC_GROUP);
     CHECK_RET(ret);
-
-    cout << "Group loaded: nbits=" << ecdh_ctx_tc.grp.nbits << ", pbits=" << ecdh_ctx_tc.grp.pbits << endl;
 
     // generate an ephemeral key
     ret = mbedtls_ecdh_gen_public(&ecdh_ctx_tc.grp, &ecdh_ctx_tc.d, &ecdh_ctx_tc.Q,
@@ -182,6 +283,15 @@ class HybridEncryption {
     aes_gcm_256_dec(aes_key, ciphertext.aes_iv,
                     ciphertext.data.data(), ciphertext.data.size(),
                     ciphertext.gcm_tag, cleartext.data());
+  }
+
+  string hybridEncrypt(const ECPointBuffer tc_pubkey,
+                     const uint8_t* data,
+                     size_t data_len) {
+    HybridCiphertext ciphertext;
+    this->hybridEncrypt(tc_pubkey, iv, data, data_len, ciphertext);
+
+    return this->encode(ciphertext);
   }
 
   void hybridEncrypt(const ECPointBuffer tc_pubkey,

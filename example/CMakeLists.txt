@@ -16,9 +16,7 @@
 
 # TODO: see if possible to conditionally run above commands based on the mode (e.g. being added or using as the root CMakeLists.txt)
 
-# TODO: convert to absolute path using this:
 get_filename_component(MBEDTLS_SGX_ROOT_DIR ".." REALPATH BASE_DIR "${CMAKE_BINARY_DIR}")
-message(STATUS "MBEDTLS_SGX_ROOT_DIR: ${MBEDTLS_SGX_ROOT_DIR}")
 
 add_subdirectory(tls)
 add_subdirectory(hybrid-encryption)

@@ -1,23 +1,21 @@
+#include "enc.h"
+
 #include <stdio.h>
-#include <iostream>
-
-using namespace std;
-
 #include <mbedtls/config.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/platform.h>
 
+#include <string>
+#include <iostream>
+
+using namespace std;
+
 /*
  * Example: hybridd encryption
  * encrypt a 32-byte key first, then encrypt an arbitrary long message.
  */
-
-#include "enc.h"
-
 int main(int argc, const char *argv[]) {
-
-
   HybridEncryption encrypt;
   try {
     ECPointBuffer server_pubkey;
@@ -25,35 +23,39 @@ int main(int argc, const char *argv[]) {
     mbedtls_mpi_init(&server_seckey);
     encrypt.initServer(&server_seckey, server_pubkey);
 
-    ECPointBuffer user_pubkey;
+    cout << "simulating starts" << endl;
 
-    uint8_t text[100];
-    memset(text, 0x92, sizeof text);
-    uint8_t cipher[100];
+    while (true) {
+      cout << "enter the text you want to encrypt and hit Enter: " << endl << "(empty line to exit): ";
+      string user_secret;
+      getline(cin, user_secret);
+      if ((user_secret.empty()) || (cin.rdstate() & (cin.failbit | cin.badbit))) {
+        cout << endl << "bye!" << endl;
+        break;
+      }
 
-    GCMTag tag;
-    AESKey key;
-    AESIv iv;
+      cout << "----------------" << endl;
+      hexDump("input", user_secret.data(), user_secret.size());
+      cout << "----------------" << endl;
 
-    encrypt.fill_random(key, sizeof key);
-    encrypt.fill_random(iv, sizeof iv);
+      string cipher_b64 = encrypt.hybridEncrypt(server_pubkey,
+                                                reinterpret_cast<const uint8_t *>(user_secret.data()),
+                                                user_secret.size());
 
-    encrypt.hexdump("key", key, sizeof key);
-    encrypt.hexdump("iv", iv, sizeof iv);
 
-    HybridCiphertext ciphertext;
-    encrypt.hybridEncrypt(server_pubkey, iv,
-                          text, sizeof text,
-                          ciphertext);
-    encrypt.hexdump("tag", ciphertext.gcm_tag, sizeof ciphertext.gcm_tag);
-    encrypt.hexdump("ciphertext", ciphertext.data.data(), ciphertext.data.size());
+      cout << "ciphertext (base64):\n" << cipher_b64;
+      cout << "----------------" << endl;
 
-    vector<uint8_t> cleartext;
-    encrypt.hybridDecrypt(ciphertext, &server_seckey, cleartext);
+      HybridCiphertext ciphertext = encrypt.decode(cipher_b64);
 
-    encrypt.hexdump("decrypted", cleartext.data(), cleartext.size());
+      vector<uint8_t> cleartext;
+      encrypt.hybridDecrypt(ciphertext, &server_seckey, cleartext);
+
+      hexDump("decrypted", cleartext.data(), cleartext.size());
+      cout << "----------------" << endl;
+    }
   }
-  catch (const exception& e) {
+  catch (const exception &e) {
     cerr << e.what() << endl;
   }
 
