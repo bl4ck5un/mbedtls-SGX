@@ -13,7 +13,12 @@ add_custom_command(
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(enc enc.cpp base64.c)
-target_link_libraries(enc -lmbedtls -lmbedx509 -lmbedcrypto)
+add_executable(hkeygen hkeygen.cpp hybrid_cipher.cpp base64.cpp hexdump.c)
+add_executable(henc henc.cpp hybrid_cipher.cpp base64.cpp hexdump.c)
+add_executable(hdec hdec.cpp hybrid_cipher.cpp base64.cpp hexdump.c)
+
+target_link_libraries(hkeygen -lmbedtls -lmbedx509 -lmbedcrypto)
+target_link_libraries(henc -lmbedtls -lmbedx509 -lmbedcrypto)
+target_link_libraries(hdec -lmbedtls -lmbedx509 -lmbedcrypto)
 
 set(LIB_MBEDTLS_PATH "${MBEDTLS_LIB_DIR}/libmbedtls_sgx_u.a")
