@@ -14,10 +14,7 @@
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# TODO: see if possible to conditionally run above commands based on the mode (e.g. being added or using as the root CMakeLists.txt)
-
 get_filename_component(MBEDTLS_SGX_ROOT_DIR ".." REALPATH BASE_DIR "${CMAKE_BINARY_DIR}")
 
 add_subdirectory(tls)
-add_subdirectory(hybrid-encryption)
 add_subdirectory(enclave)
