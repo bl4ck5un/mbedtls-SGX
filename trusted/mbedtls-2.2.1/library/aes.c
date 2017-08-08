@@ -198,7 +198,7 @@ static const unsigned char FSb[256] =
     V(CB,B0,B0,7B), V(FC,54,54,A8), V(D6,BB,BB,6D), V(3A,16,16,2C)
 
 #define V(a,b,c,d) 0x##a##b##c##d
-static const uint32_t FT0[256] = { FT };
+static const uint32_t FT0[256] __attribute__((aligned(0x1000))) = { FT };
 #undef V
 
 #define V(a,b,c,d) 0x##b##c##d##a
@@ -325,7 +325,7 @@ static const unsigned char RSb[256] =
     V(61,84,CB,7B), V(70,B6,32,D5), V(74,5C,6C,48), V(42,57,B8,D0)
 
 #define V(a,b,c,d) 0x##a##b##c##d
-static const uint32_t RT0[256] = { RT };
+static const uint32_t RT0[256] __attribute__((aligned(0x1000))) = { RT };
 #undef V
 
 #define V(a,b,c,d) 0x##b##c##d##a
@@ -358,7 +358,7 @@ static const uint32_t RCON[10] =
  * Forward S-box & tables
  */
 static unsigned char FSb[256];
-static uint32_t FT0[256];
+static uint32_t FT0[256] __attribute__((aligned(0x1000)));
 static uint32_t FT1[256];
 static uint32_t FT2[256];
 static uint32_t FT3[256];
@@ -367,7 +367,7 @@ static uint32_t FT3[256];
  * Reverse S-box & tables
  */
 static unsigned char RSb[256];
-static uint32_t RT0[256];
+static uint32_t RT0[256] __attribute__((aligned(0x1000)));
 static uint32_t RT1[256];
 static uint32_t RT2[256];
 static uint32_t RT3[256];
