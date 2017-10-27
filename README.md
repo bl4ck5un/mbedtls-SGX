@@ -46,10 +46,6 @@ cmake .. -DCOMPILE_EXAMPLES
 make -j
 ```
 
-# Examples
-
-To be continued. See `example` for code.
-
 ### with `make` 
 
 ```
@@ -71,20 +67,9 @@ as shown in examples.
 
 [Deprecated: I'm not maintaining the Windows version anymore]
 
-Suppose you've got an SGX application ready, take following steps to use mbedtls-SGX:
+# Examples
 
-Configuration for the enclave project:
-
-1. Add `lib/include` to the `Include Directories` ![include](docs/include.png)
-2. Add `lib/mbedtls_tlib.lib` as an additional dependencies ![link-input](docs/link-input.png)
-3. Add `lib` to the `Library Directories` ![lib](docs/lib-directory.png)
-4. Import `lib/mbedtls_tlib.edl` in your edl file
-
-Configuration for the application project:
-
-1. Add the untrusted C file (`lib/mbedtls_u.c`) to application. ![lib](docs/add-untrust.png)
-
-See `example` for a working example. 
+To be continued. See `example` for code.
 
 # Missing features and workarounds
 
@@ -93,14 +78,6 @@ Due to SGX's contraints, some features have been turned off.
 - The lack of trusted wall-clock time. SGX provides trusted relative timer but not an absolute one. This affects checking expired certificates. A workaround is to maintain an internal clock and calibrate it frequently. 
 - No access to file systems: mbedtls-SGX can not load CA files from file systems. To work this around, you need to hardcode root CAs as part of the enclave program. See `example/ExampleEnclave/RootCerts.{h,cpp}` for examples. 
 - For a full configuration, see `src/mbedtls-2.2.1/include/mbedtls/config.h`.
-
-# FAQ
-
-## Error: Can not load enclave file with `CreateFile` in Visual Studio
-
-In `Debugging` configuration, change `Working Directory` from `$(TargetDir)$` (or alike) to `$(OutDir)`.
-
-![can-not-load](docs/can not load.png)
 
 # License
 
