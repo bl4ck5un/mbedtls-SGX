@@ -5,8 +5,8 @@ PolarSSL), is an implementation of TLS protocol suite and a variety of
 cryptographic primitives that can be within Intel SGX enclaves. In order to keep
 the operating system out of the TCB, the core idea of this port is to have TLS
 layers in the enclave and only call into the OS for transport services (TCP /
-UDP). Treated as a big MITM, even malicious OSes can not tamper with the
-security of a TLS session originated from an SGX enclave.
+UDP). Treated as a big MITM, even a malicious OS can not tamper with the
+security of TLS sessions originated from an SGX enclave.
 
 # Source code structure
 
@@ -18,11 +18,9 @@ security of a TLS session originated from an SGX enclave.
 
 # Usage
 
-mbedtls-SGX is implemented as an enclave library (see [SDK
-documentation](https://software.intel.com/sites/products/sgx-sdk-users-guide-windows/Default.htm)
-for terminologies). To use it, you'll first need a working "SGX application"
-(i.e. an app and an enclave). mbedtls-SGX is only meant to be used in an enclave, 
-not in untrusted applications.
+mbedtls-SGX is implemented as an enclave library.
+To use it, you'll first need a working "SGX application" (i.e. an app and an enclave).
+mbedtls-SGX is meant to be used in an enclave, not in untrusted applications.
 
 ## Linux
 
@@ -30,7 +28,8 @@ not in untrusted applications.
 
 ```
 git clone https://github.com/bl4ck5un/mbedtls-SGX && cd mbedtls-SGX
-mkdir build && cd build && cmake ..
+mkdir build && cd build
+cmake ..
 make -j
 ```
 
@@ -39,6 +38,17 @@ Use `build/libmbedtls_sgx_{t,u}.a` and `mbedtls_sgx.edl` in your project.  Link
 `libmbedtls_sgx_t.a` to your enclave.  See example for details.
 Be sure to include `mbedtls_sgx.edl` in your enclave's EDL file. 
 Also make sure your compiler can find the headers in `include`.
+
+To build examples,
+
+```
+cmake .. -DCOMPILE_EXAMPLES
+make -j
+```
+
+# Examples
+
+To be continued. See `example` for code.
 
 ### with `make` 
 
