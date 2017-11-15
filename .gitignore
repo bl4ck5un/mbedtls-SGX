@@ -161,3 +161,8 @@ $RECYCLE.BIN/
 
 .idea
 cmake-build-debug
+
+*_u.c
+*_u.h
+*_t.c
+*_t.h

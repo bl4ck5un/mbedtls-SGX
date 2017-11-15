@@ -11,7 +11,7 @@ add_custom_command(
         COMMAND ${SGX_EDGER8R} --untrusted Enclave.edl
         --search-path ../enclave/ # enclave.edl
         --search-path ${SGX_SDK}/include
-        --search-path ${MBEDTLS_SGX_ROOT_DIR}/lib # mbedtls_sgx.edl
+        --search-path ${MBEDTLS_SGX_LIBRARY_DIR}# mbedtls_sgx.edl
         COMMENT "Generating Enclave_u.{c,h}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -25,28 +25,17 @@ include_directories(
         ${MBEDTLS_SGX_ROOT_DIR}/include
 )
 
-set(LIB_MBEDTLS_PATH "${MBEDTLS_LIB_DIR}/libmbedtls_sgx_u.a")
-
 target_link_libraries(s_client
         -L${SGX_LIBRARY_PATH} -l${SGX_URTS_LIB} -l${SGX_USVC_LIB}
-        ${LIB_MBEDTLS_PATH}
-        -Wl,-rpath -Wl,/usr/local/lib
-        -Wl,-rpath -Wl,${SGX_LIBRARY_PATH}
-        -lpthread)
+        ${MBEDTLS_SGX_LIB_U} -lpthread)
 
 target_link_libraries(s_server
         -L${SGX_LIBRARY_PATH} -l${SGX_URTS_LIB} -l${SGX_USVC_LIB}
-        ${LIB_MBEDTLS_PATH}
-        -Wl,-rpath -Wl,/usr/local/lib
-        -Wl,-rpath -Wl,${SGX_LIBRARY_PATH}
-        -lpthread)
+        ${MBEDTLS_SGX_LIB_U} -lpthread)
 
 target_link_libraries(m_server
         -L${SGX_LIBRARY_PATH} -l${SGX_URTS_LIB} -l${SGX_USVC_LIB}
-        ${LIB_MBEDTLS_PATH}
-        -Wl,-rpath -Wl,/usr/local/lib
-        -Wl,-rpath -Wl,${SGX_LIBRARY_PATH}
-        -lpthread)
+        ${MBEDTLS_SGX_LIB_U} -lpthread)
 
 add_dependencies(s_client enclave)
 add_dependencies(s_server enclave)

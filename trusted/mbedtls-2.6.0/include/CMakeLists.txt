@@ -4,7 +4,7 @@ if(INSTALL_MBEDTLS_HEADERS)
 
     file(GLOB headers "mbedtls/*.h")
 
-    install(FILES ${headers}
+    install(FILES ${headers} glue.h
         DESTINATION include/mbedtls
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 

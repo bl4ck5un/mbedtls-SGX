@@ -1,13 +1,11 @@
 set(SOURCE_FILES
         Enclave_t.c
-        Enclave_t.h
         ecalls.cpp
         Log.c
         pprint.c
         s_client.c
         s_server.c
-        ssl_conn_hdlr.cpp
-        )
+        ssl_conn_hdlr.cpp)
 
 add_definitions(-DENCLAVE_STD_ALT)
 
@@ -18,11 +16,9 @@ add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Enclave_t.c
         COMMAND ${SGX_EDGER8R} --trusted Enclave.edl
         --search-path ${SGX_SDK}/include
-        --search-path ${MBEDTLS_SGX_ROOT_DIR}/lib
-        --search-path ${CMAKE_CURRENT_SOURCE_DIR}
+        --search-path ${MBEDTLS_SGX_LIBRARY_DIR}
         COMMENT "Generating Enclave_t.{c,h}"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
 add_library(enclave SHARED ${SOURCE_FILES})
 
@@ -31,20 +27,18 @@ include_directories(
         ${SGX_SDK}/include
         ${SGX_SDK}/include/tlibc
         ${SGX_SDK}/include/stlport
-        ${MBEDTLS_SGX_ROOT_DIR}/include
+        ${MBEDTLS_SGX_INCLUDE_DIR}
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SGX_COMMON_CFLAGS} -nostdinc -fvisibility=hidden -fpie -fstack-protector")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS} -std=c++03 -nostdinc++")
-
-set(LIB_MBEDTLS_PATH "${MBEDTLS_LIB_DIR}/libmbedtls_sgx_t.a")
 
 set_target_properties(enclave PROPERTIES PREFIX "")
 
 target_link_libraries(enclave "${SGX_COMMON_CFLAGS} \
     -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L${SGX_LIBRARY_PATH} \
     -Wl,--whole-archive -l${SGX_TRTS_LIB} -Wl,--no-whole-archive \
-    -Wl,--start-group ${LIB_MBEDTLS_PATH} -lsgx_tstdc -lsgx_tstdcxx -lsgx_tcrypto -l${SGX_TSVC_LIB} -Wl,--end-group \
+    -Wl,--start-group ${MBEDTLS_SGX_LIB_T} -lsgx_tstdc -lsgx_tstdcxx -lsgx_tcrypto -l${SGX_TSVC_LIB} -Wl,--end-group \
     -Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
     -Wl,-pie,-eenclave_entry -Wl,--export-dynamic \
     -Wl,--defsym,__ImageBase=0")
@@ -52,9 +46,9 @@ target_link_libraries(enclave "${SGX_COMMON_CFLAGS} \
 add_custom_command(TARGET enclave
         POST_BUILD
         COMMAND ${SGX_ENCLAVE_SIGNER} sign
-        -key Enclave_private.pem
-        -config Enclave.config.xml
-        -enclave ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/enclave.so
-        -out ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/enclave.signed.so
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        -key ${CMAKE_CURRENT_SOURCE_DIR}/Enclave_private.pem
+        -config ${CMAKE_CURRENT_SOURCE_DIR}/Enclave.config.xml
+        -enclave enclave.so
+        -out enclave.signed.so
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Signing the enclave => ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/enclave.signed.so")

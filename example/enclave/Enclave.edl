@@ -1,5 +1,5 @@
 enclave {
-    from "mbedtls_sgx.edl" import *;
+    from "mbedtls_SGX.edl" import *;
     from "sgx_tstdc.edl" import *;
     include "../common/ssl_context.h"
 

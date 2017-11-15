@@ -2,6 +2,21 @@
 #include "enc.h"
 #include "s_server.h"
 #include "Log.h"
+#include "ssl_conn_hdlr.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int sgx_connect();
+int sgx_accept();
+void ssl_conn_init();
+void ssl_conn_teardown();
+void ssl_conn_handle(long int thread_id, thread_info_t *thread_info);
+
+#ifdef __cplusplus
+}
+#endif
 
 int sgx_connect()
 {
@@ -19,8 +34,6 @@ int sgx_accept()
 {
     return ssl_server();
 }
-
-#include "ssl_conn_hdlr.h"
 
 TLSConnectionHandler* connectionHandler;
 

@@ -1,6 +1,6 @@
 # need 3.0 for multiple line strings
 cmake_minimum_required(VERSION 3.0)
-project(mbedtls_SGX "C")
+project(mbedtls_SGX "C" "CXX")
 
 set(MBEDTLS_VERSION 2.6.0)
 
