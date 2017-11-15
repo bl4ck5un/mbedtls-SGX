@@ -22,6 +22,6 @@ set(MBEDTLS_LIB_DIR ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 add_subdirectory(trusted)
 add_subdirectory(ocall)
 
-#if (COMPILE_EXAMPLES)
+if (COMPILE_EXAMPLES)
     add_subdirectory(example)
-#endif()
+endif()
