@@ -34,8 +34,7 @@
 #include <csignal>
 
 #include "mbedtls/ssl.h"
-#include "mbedtls/net_v.h"
-#include "mbedtls/net_f.h"
+#include "mbedtls/net.h"
 #include "mbedtls/error.h"
 #include "Enclave_u.h"
 #include "Utils.h"
@@ -57,6 +56,8 @@ typedef struct {
 
 static pthread_info_t threads[MAX_NUM_THREADS];
 sgx_enclave_id_t eid;
+
+#include "mbedtls_net.c"
 
 // thread function
 void *ecall_handle_ssl_connection(void *data) {

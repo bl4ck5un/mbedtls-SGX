@@ -12,6 +12,7 @@ add_custom_command(
         --search-path ../enclave/ # enclave.edl
         --search-path ${SGX_SDK}/include
         --search-path ${MBEDTLS_SGX_ROOT_DIR}/lib # mbedtls_sgx.edl
+        COMMENT "Generating Enclave_u.{c,h}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

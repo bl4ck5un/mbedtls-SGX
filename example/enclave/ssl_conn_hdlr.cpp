@@ -1,9 +1,8 @@
 #include "ssl_conn_hdlr.h"
 
 #include <exception>
-#include <mbedtls/net_v.h>
-#include "mbedtls/net_f.h"
-#include "mbedtls/debug.h"
+#include <mbedtls/net.h>
+#include <mbedtls/debug.h>
 
 TLSConnectionHandler::TLSConnectionHandler() {
   int ret;
@@ -176,7 +175,7 @@ void TLSConnectionHandler::handle(long int thread_id, thread_info_t *thread_info
   }
 
   mbedtls_printf("client_fd is %d\n", client_fd->fd);
-  mbedtls_ssl_set_bio(&ssl, client_fd, mbedtls_net_send, mbedtls_sgx_net_recv, NULL);
+  mbedtls_ssl_set_bio(&ssl, client_fd, mbedtls_net_send_ocall, mbedtls_net_recv_ocall, NULL);
 
   /*
    * 5. Handshake

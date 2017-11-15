@@ -8,6 +8,8 @@ set(SGX_MODE SIM CACHE STRING "SGX mode: SIM or HW") # SGX mode: sim, hw
 set(COMPILE_EXAMPLES NO CACHE BOOL "Build examples")
 set(SGX_BUILD DEBUG CACHE STRING "Build: DEBUG, PRERELEASE or RELEASE")
 
+set(MBEDTLS_VERSION 2.6.0)
+
 include (cmake/Init.cmake)
 include (cmake/ConfigSGX.cmake)
 
@@ -18,8 +20,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(MBEDTLS_LIB_DIR ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 add_subdirectory(trusted)
-add_subdirectory(untrusted)
+add_subdirectory(ocall)
 
-if (COMPILE_EXAMPLES)
+#if (COMPILE_EXAMPLES)
     add_subdirectory(example)
-endif()
+#endif()

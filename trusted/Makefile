@@ -1,12 +1,11 @@
 ######## Project Settings ########
-
 PROJECT_NAME=mbedtls_sgx
 PROJECT_EDL=$(PROJECT_NAME).edl
 
 Enclave_Name := lib$(PROJECT_NAME)_t.a
 Enclave_Config_File := $(PROJECT_NAME).config.xml
 
-MBEDTLS_VERSION=2.2.1
+MBEDTLS_VERSION=2.6.0
 MBEDTLS_ROOT=mbedtls-$(MBEDTLS_VERSION)
 MBEDTLS_HEADER_DIR=$(MBEDTLS_ROOT)/include
 MBEDTLS_C_DIR=$(MBEDTLS_ROOT)/library
@@ -96,13 +95,13 @@ all: $(Enclave_Name)
 	@echo "You can also sign the enclave using an external signing tool. See User's Guide for more details."
 	@echo "To build the project in simulation mode set SGX_MODE=SIM. To build the project in prerelease mode set SGX_PRERELEASE=1 and SGX_MODE=HW."
 else
-all: $(Enclave_Name) libmbedtls_sgx_u.a
+all: $(Enclave_Name)
 endif
 
 
 ######## Enclave Objects ########
 
-$(PROJECT_NAME)_t.c: $(SGX_EDGER8R) 
+$(PROJECT_NAME)_t.c: $(SGX_EDGER8R)
 	@$(SGX_EDGER8R) --trusted $(PROJECT_EDL) --search-path $(MBEDTLS_HEADER_DIR) \
 		--search-path $(SGX_SDK)/include
 	@echo "GEN =>  $@"
@@ -115,23 +114,7 @@ $(Enclave_Name): $(PROJECT_NAME)_t.o $(Enclave_C_Objects)
 	@ar rcs $@ $^
 	@echo "LD => $@"
 
-
-######## Untrusted parts ########
-
-UNTRUSTED_SRC_FILES := ../untrusted/mbedtls_sgx_u_net.c ../untrusted/mbedtls_sgx_u_std.c
-UNTRUSTED_OBJECTS := $(UNTRUSTED_SRC_FILES:.c=.u.o)
-
-libmbedtls_sgx_u.a:	$(UNTRUSTED_OBJECTS)
-	@ar rcs $@ $^
-	@echo "LD => $@"
-
-%.u.o: %.c
-	@$(CC) -Imbedtls-2.2.1/include  -c -o $@ $<
-	@echo "CC <= $<"
-
-.PHONY: clean
-
 clean:
 	@rm -f $(Enclave_Name) $(Signed_Enclave_Name) \
-		$(Enclave_C_Objects) $(UNTRUSTED_OBJECTS)\
-		$(PROJECT_NAME)_t.* $(PROJECT_NAME)_u.*
+		$(Enclave_C_Objects) $(PROJECT_NAME)_t.*
+

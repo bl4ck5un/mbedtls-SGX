@@ -1,6 +1,7 @@
 set(SOURCE_FILES
-        ecalls.cpp
         Enclave_t.c
+        Enclave_t.h
+        ecalls.cpp
         Log.c
         pprint.c
         s_client.c
@@ -14,12 +15,13 @@ set_directory_properties(PROPERTIES
         ADDITIONAL_MAKE_CLEAN_FILES "Enclave_t.c; Enclave_t.h")
 
 add_custom_command(
-        OUTPUT Enclave_t.c
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Enclave_t.c
         COMMAND ${SGX_EDGER8R} --trusted Enclave.edl
         --search-path ${SGX_SDK}/include
         --search-path ${MBEDTLS_SGX_ROOT_DIR}/lib
         --search-path ${CMAKE_CURRENT_SOURCE_DIR}
-        WORKING_DIRECTORY .
+        COMMENT "Generating Enclave_t.{c,h}"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 add_library(enclave SHARED ${SOURCE_FILES})

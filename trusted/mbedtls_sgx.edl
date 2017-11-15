@@ -1,6 +1,6 @@
 enclave {
-    include "mbedtls/net_v.h"
-    include "mbedtls/timing_v.h"
+    include "mbedtls/net.h"
+    include "mbedtls/timing.h"
 
     trusted {
         public void dummy(void);

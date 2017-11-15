@@ -6,7 +6,7 @@
 #define MBEDTLS_SGX_SSL_CONTEXT_H
 
 #include "mbedtls/ssl.h"
-#include "mbedtls/net_v.h"
+#include "mbedtls/net.h"
 
 typedef struct {
   mbedtls_net_context client_fd;

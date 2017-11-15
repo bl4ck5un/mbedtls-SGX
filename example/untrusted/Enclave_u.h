@@ -8,8 +8,8 @@
 #include "sgx_edger8r.h" /* for sgx_satus_t etc. */
 
 #include "../common/ssl_context.h"
-#include "mbedtls/net_v.h"
-#include "mbedtls/timing_v.h"
+#include "mbedtls/net.h"
+#include "mbedtls/timing.h"
 
 #include <stdlib.h> /* for size_t */
 

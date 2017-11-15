@@ -1,8 +1,6 @@
 #ifndef MBEDTLS_SGX_SSL_SERVER_THREAD_H
 #define MBEDTLS_SGX_SSL_SERVER_THREAD_H
 
-#define MBEDTLS_CONFIG_FILE "config_client.h"
-
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -26,8 +24,7 @@
 #include "mbedtls/certs.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/ssl.h"
-#include "mbedtls/net_v.h"
-#include "mbedtls/net_f.h"
+#include "mbedtls/net.h"
 #include "mbedtls/error.h"
 
 #include <stdio.h>

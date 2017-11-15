@@ -15,7 +15,7 @@
  *
  * Authors:
  *     Fan Zhang <bl4ck5unxx@gmail.com>
- * 
+ *
  * This is a glue file calling ocalls.
  */
 

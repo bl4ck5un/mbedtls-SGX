@@ -24,8 +24,6 @@
 #include "Log.h"
 #include "pprint.h"
 
-#define MBEDTLS_CONFIG_FILE "config_client.h"
-
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -43,13 +41,12 @@
 
 #if !defined(MBEDTLS_ENTROPY_C) || \
     !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_CTR_DRBG_C)
+    !defined(MBEDTLS_CTR_DRBG_C)
 #else
 
 
 
-#include "mbedtls/net_v.h"
-#include "mbedtls/net_f.h"
+#include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
@@ -264,7 +261,7 @@ static int my_recv( void *ctx, unsigned char *buf, size_t len )
         return( MBEDTLS_ERR_SSL_WANT_READ );
     }
 
-    ret = mbedtls_net_recv( ctx, buf, len );
+    ret = mbedtls_net_recv_ocall( ctx, buf, len );
     if( ret != MBEDTLS_ERR_SSL_WANT_READ )
         first_try = 1; /* Next call will be a new operation */
     return( ret );
@@ -281,7 +278,7 @@ static int my_send( void *ctx, const unsigned char *buf, size_t len )
         return( MBEDTLS_ERR_SSL_WANT_WRITE );
     }
 
-    ret = mbedtls_net_send( ctx, buf, len );
+    ret = mbedtls_net_send_ocall( ctx, buf, len );
     if( ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         first_try = 1; /* Next call will be a new operation */
     return( ret );
@@ -347,7 +344,7 @@ int ssl_client(client_opt_t opt, char* headers[], int n_header, unsigned char* o
     /*
      * Make sure memory references are valid.
      */
-    mbedtls_net_init( &server_fd );
+    mbedtls_net_init_ocall( &server_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
     memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
@@ -545,7 +542,7 @@ int ssl_client(client_opt_t opt, char* headers[], int n_header, unsigned char* o
             opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "TCP" : "UDP",
             opt.server_addr, opt.server_port );
 
-    if( ( ret = mbedtls_net_connect( &server_fd, opt.server_addr, opt.server_port,
+    if( ( ret = mbedtls_net_connect_ocall( &server_fd, opt.server_addr, opt.server_port,
                              opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
                              MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
     {
@@ -554,9 +551,9 @@ int ssl_client(client_opt_t opt, char* headers[], int n_header, unsigned char* o
     }
 
     if( opt.nbio > 0 )
-        ret = mbedtls_net_set_nonblock( &server_fd );
+        ret = mbedtls_net_set_nonblock_ocall( &server_fd );
     else
-        ret = mbedtls_net_set_block( &server_fd );
+        ret = mbedtls_net_set_block_ocall( &server_fd );
     if( ret != 0 )
     {
         LL_CRITICAL( " net_set_(non)block() returned -%#x", -ret );
@@ -725,8 +722,8 @@ int ssl_client(client_opt_t opt, char* headers[], int n_header, unsigned char* o
     if( opt.nbio == 2 )
         mbedtls_ssl_set_bio( &ssl, &server_fd, my_send, my_recv, NULL );
     else
-        mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv,
-                             opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+        mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send_ocall, mbedtls_net_recv_ocall,
+                             opt.nbio == 0 ? mbedtls_net_recv_timeout_ocall : NULL );
 
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
@@ -1073,7 +1070,7 @@ reconnect:
     {
         --opt.reconnect;
 
-        mbedtls_net_free( &server_fd );
+        mbedtls_net_free_ocall( &server_fd );
 
 #if defined(MBEDTLS_TIMING_C)
         if( opt.reco_delay > 0 )
@@ -1094,7 +1091,7 @@ reconnect:
             goto exit;
         }
 
-        if( ( ret = mbedtls_net_connect( &server_fd, opt.server_addr, opt.server_port,
+        if( ( ret = mbedtls_net_connect_ocall( &server_fd, opt.server_addr, opt.server_port,
                                  opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
                                  MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
         {
@@ -1103,9 +1100,9 @@ reconnect:
         }
 
         if( opt.nbio > 0 )
-            ret = mbedtls_net_set_nonblock( &server_fd );
+            ret = mbedtls_net_set_nonblock_ocall( &server_fd );
         else
-            ret = mbedtls_net_set_block( &server_fd );
+            ret = mbedtls_net_set_block_ocall( &server_fd );
         if( ret != 0 )
         {
             mbedtls_printf( "  net_set_(non)block() returned -%#x",
@@ -1141,7 +1138,7 @@ exit:
     }
 #endif
 
-    mbedtls_net_free( &server_fd );
+    mbedtls_net_free_ocall( &server_fd );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_free( &clicert );

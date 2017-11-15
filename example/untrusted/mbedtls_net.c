@@ -21,7 +21,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#include "mbedtls/net_v.h"
+#include "mbedtls/net.h"
 
 #include <string.h>
 
