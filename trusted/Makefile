@@ -1,5 +1,5 @@
 ######## Project Settings ########
-PROJECT_NAME=mbedtls_sgx
+PROJECT_NAME=mbedtls_SGX
 PROJECT_EDL=$(PROJECT_NAME).edl
 
 Enclave_Name := lib$(PROJECT_NAME)_t.a
