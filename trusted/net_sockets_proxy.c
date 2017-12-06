@@ -19,7 +19,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#include "../../mbedtls_sgx_t.h"
+#include "mbedtls_SGX_t.h"
 #include "mbedtls/platform.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
