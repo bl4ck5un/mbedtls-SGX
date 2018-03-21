@@ -1,0 +1,3 @@
+- [2017.11.14] Release a port of mbedtls-2.6.0. See `trusted/CHANGELOG` for modifications.
+- [2017.11.14] The support for Windows is droped. If you want to help maintain
+  a version for Windows, please contact me.
