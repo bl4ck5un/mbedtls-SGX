@@ -1,16 +1,12 @@
-# mbedtls-SGX: a port of mbedtls to SGX
+# mbedtls-SGX: TLS stack in SGX
 
-mbedtls-SGX is a port of [mbedtls](https://github.com/ARMmbed/mbedtls) (previously
-PolarSSL) for Intel-SGX. mbedtls-SGX aims to preserve **all** of the functionality of mbedtls
-permitted by SGX. With mbedtls-SGX, you can
+mbedtls-SGX is a port of [mbedtls](https://github.com/ARMmbed/mbedtls) (previously PolarSSL) to Intel-SGX. mbedtls-SGX aims to preserve **all** of the [features of mbedtls](https://tls.mbed.org/core-features). With mbedtls-SGX, you can
 
-- access a wide array of cryptographic primitives (hash, PRNG, RSA, ECC, AES, etc) in SGX.
+- use a wide array of cryptographic primitives (hash, RSA, ECC, AES, etc) in SGX.
 - build SGX-secured tls clients and servers -- even OS cannot access session secrets.
 - enjoy the awesome [documentation](https://tls.mbed.org/kb) and clean [API](https://tls.mbed.org/api/) of mbedtls.
-- use cmake to build on whatever toolchain / platform you like.
 
-In addition, mbedtls-SGX comes with examples to help you get started.
-Note that certain functionality is lost due to limitations of SGX. Read on for details.
+In addition, mbedtls-SGX comes with [examples](https://github.com/bl4ck5un/mbedtls-SGX/tree/master/example) to help you get started. Note that certain functionality is lost due to limitations of SGX. Read on for details.
 
 # Update
 
@@ -19,18 +15,20 @@ Note that certain functionality is lost due to limitations of SGX. Read on for d
   a version for Windows, please contact me.
 
 
-# Examples
-See `example` for code.
+# Usage and Examples
 
-# Usage
+mbedtls-SGX is a static enclave library. General steps of using mbedtls-SGX in your project are the following:
 
-mbedtls-SGX is an enclave library. To use it,
-you'll first need a working "SGX application" (i.e. an app and an enclave).
-mbedtls-SGX is meant to be used in an enclave, not in untrusted applications.
+- link `libmbedtls_sgx_u.a` to the untrusted part of your application
+- link `libmbedtls_sgx_t.a` to your enclave.
+- include `trusted/mbedtls_sgx.edl` in your enclave's EDL file.
+- make sure your compiler can find the headers in `include`.
 
-## Linux
+See examples for a sample `CMakeLists.txt`.
 
-### with `cmake` (preferred)
+# Build in Linux
+
+## with `cmake` (preferred)
 
 ```
 git clone https://github.com/bl4ck5un/mbedtls-SGX && cd mbedtls-SGX
@@ -39,16 +37,11 @@ cmake ..
 make -j
 ```
 
-General steps to use mbedtls-SGX with your project:
-
-- link `libmbedtls_sgx_u.a` to the untrusted part of your application
-- link `libmbedtls_sgx_t.a` to your enclave.
-- include `trusted/mbedtls_sgx.edl` in your enclave's EDL file.
-- make sure your compiler can find the headers in `include`.
-
-See example for details. To compile examples, run cmake with `-DCOMPILE_EXAMPLES=YES`
+To compile examples, run cmake with `-DCOMPILE_EXAMPLES=YES`
 
 ```
+git clone https://github.com/bl4ck5un/mbedtls-SGX && cd mbedtls-SGX
+mkdir build && cd build
 cmake .. -DCOMPILE_EXAMPLES=YES
 make -j
 ```
@@ -59,7 +52,7 @@ Three examples will be built
 - `s_server`: a simple TLS server. You can play with it by `openssl s_client localhost:4433`.
 - `m_server`: a multi-threaded TLS server, also listening at `localhost:4433` by default.
 
-### with `make`
+## with `make`
 
 I tried to maintain Makefiles the best I can. You can use make to build mbedtls-SGX,
 but currently the examples can only be built by cmake.
@@ -72,11 +65,6 @@ make
 In `lib`, you'll get two static libraries.
 se `libmbedtls_sgx_{u,t}.a` and `mbedtls_sgx.edl` in your project
 as shown in examples.
-
-## Windows
-
-[Deprecated: I'm not maintaining the Windows version anymore]
-
 
 # Missing features and workarounds
 
