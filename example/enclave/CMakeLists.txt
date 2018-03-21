@@ -16,7 +16,7 @@ add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/Enclave_t.c
         COMMAND ${SGX_EDGER8R} --trusted Enclave.edl
         --search-path ${SGX_SDK}/include
-        --search-path ${MBEDTLS_SGX_LIBRARY_DIR}
+        --search-path ${CMAKE_SOURCE_DIR}/trusted
         COMMENT "Generating Enclave_t.{c,h}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 
@@ -24,10 +24,10 @@ add_library(enclave SHARED ${SOURCE_FILES})
 
 include_directories(
         $(CMAKE_CURRENT_SOURCE_DIR)
+        ${CMAKE_SOURCE_DIR}/include
         ${SGX_SDK}/include
         ${SGX_SDK}/include/tlibc
         ${SGX_SDK}/include/stlport
-        ${MBEDTLS_SGX_INCLUDE_DIR}
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SGX_COMMON_CFLAGS} -nostdinc -fvisibility=hidden -fpie -fstack-protector")
@@ -52,3 +52,6 @@ add_custom_command(TARGET enclave
         -out enclave.signed.so
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Signing the enclave => ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/enclave.signed.so")
+
+add_dependencies(enclave ${PROJECT_NAME}_t)
+add_dependencies(enclave ${PROJECT_NAME}_u)
