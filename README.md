@@ -1,4 +1,4 @@
-# mbedtls-SGX: TLS stack in SGX
+# mbedtls-SGX: a TLS stack in SGX
 
 mbedtls-SGX is a port of [mbedtls](https://github.com/ARMmbed/mbedtls) (previously PolarSSL) to Intel-SGX. mbedtls-SGX aims to preserve **all** of the [features of mbedtls](https://tls.mbed.org/core-features). With mbedtls-SGX, you can
 
@@ -7,13 +7,6 @@ mbedtls-SGX is a port of [mbedtls](https://github.com/ARMmbed/mbedtls) (previous
 - enjoy the awesome [documentation](https://tls.mbed.org/kb) and clean [API](https://tls.mbed.org/api/) of mbedtls.
 
 In addition, mbedtls-SGX comes with [examples](https://github.com/bl4ck5un/mbedtls-SGX/tree/master/example) to help you get started. Note that certain functionality is lost due to limitations of SGX. Read on for details.
-
-# Update
-
-- [2017.11.14] Release a port of mbedtls-2.6.0. See `trusted/CHANGELOG` for modifications.
-- [2017.11.14] The support for Windows is droped. If you want to help maintain
-  a version for Windows, please contact me.
-
 
 # Usage and Examples
 
