@@ -18,7 +18,6 @@
 extern "C" {
 #endif
 
-
 int sgx_connect();
 int sgx_accept();
 void ssl_conn_init();

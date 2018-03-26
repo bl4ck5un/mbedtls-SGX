@@ -7,5 +7,5 @@ include_directories(
     ../trusted/mbedtls-${MBEDTLS_VERSION}/include)
 
 install(TARGETS ${PROJECT_NAME}_u
-    DESTINATION libs
+    DESTINATION lib
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
