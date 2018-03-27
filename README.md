@@ -18,8 +18,9 @@ mbedtls-SGX is a static enclave library. General steps of using mbedtls-SGX in y
 - link `libmbedtls_sgx_u.a` to the untrusted part of your application
 - link `libmbedtls_sgx_t.a` to your enclave. Note that mbedtls-SGX needs to be linked in the same group with other SGX standard libs. Your Makefile (or CMakeLists.txt) needs something=like
 
-    -Wl,--start-group  -lmbedtls_sgx_t -lsgx_tstdc -lsgx_tcxx -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group
-
+```
+-Wl,--start-group  -lmbedtls_sgx_t -lsgx_tstdc -lsgx_tcxx -l$(Crypto_Library_Name) -l$(Service_Library_Name) -Wl,--end-group
+```
 
 ## Build
 
