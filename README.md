@@ -31,10 +31,10 @@ cmake ..
 make -j && make install
 ```
 
-Include the resultant `mbedtls_SGX-2.6.0` as part of your project.
+Include the resultant `mbedtls_SGX-2.17.0` as part of your project.
 
 ```
-mbedtls_SGX-2.6.0
+mbedtls_SGX-2.17.0
 ├── include
 │   └── mbedtls
 └── lib
