@@ -6,7 +6,7 @@ libmbedtls_sgx_u.a:	$(UNTRUSTED_OBJECTS)
 	@echo "LD => $@"
 
 %.u.o: %.c
-	@$(CC) -I../trusted/mbedtls-2.6.0/include -c -o $@ $<
+	@$(CC) -I../trusted/mbedtls-2.16.1/include -c -o $@ $<
 	@echo "CC <= $<"
 
 .PHONY: clean

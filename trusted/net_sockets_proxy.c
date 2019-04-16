@@ -28,7 +28,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/net.h"
+#include "mbedtls/net_sockets.h"
 
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
@@ -71,17 +71,16 @@ static int wsa_init_done = 0;
 
 #include <stdint.h>
 
-/*
- * Prepare for using the sockets interface
- */
-
-// deleted net_prepare
 
 /*
  * Initialize a context
  */
 void mbedtls_net_init_ocall(mbedtls_net_context *ctx) {
-  ctx->fd = -1;
+  sgx_status_t ret;
+  ret = ocall_mbedtls_net_init((mbedtls_net_context *) ctx);
+  if (ret != SGX_SUCCESS) {
+    mbedtls_printf("Error: ocall_mbedtls_net_init returned %d", ret);
+  }
 }
 
 /*
@@ -138,6 +137,21 @@ int mbedtls_net_set_nonblock_ocall(mbedtls_net_context *ctx) {
 }
 
 /*
+ * Check if data is available on the socket
+ */
+
+int mbedtls_net_poll_ocall( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
+{
+  int ret;
+  sgx_status_t ocall_ret;
+  ocall_ret = ocall_mbedtls_net_poll( &ret, (mbedtls_net_context *) ctx, rw, timeout );
+  if (SGX_SUCCESS != ocall_ret) {
+    mbedtls_printf("ocall_mbedtls_net_poll returned %#x\n", ocall_ret);
+    return MBEDTLS_ERR_NET_RECV_FAILED;
+  }
+  return ret;
+}
+/*
  * Portable usleep helper
  */
 void mbedtls_net_usleep_ocall(unsigned long usec) {
@@ -183,6 +197,6 @@ void mbedtls_net_free_ocall(mbedtls_net_context *ctx) {
   sgx_status_t ret;
   ret = ocall_mbedtls_net_free((mbedtls_net_context *) ctx);
   if (ret != SGX_SUCCESS) {
-    mbedtls_printf("Error: mbedtls_net_free returned %d", ret);
+    mbedtls_printf("Error: ocall_mbedtls_net_free returned %d", ret);
   }
 }

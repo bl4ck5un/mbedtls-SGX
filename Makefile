@@ -1,4 +1,4 @@
-MBEDTLS_VERSION=2.6.0
+MBEDTLS_VERSION=2.16.1
 
 all:
 	@make -C trusted
