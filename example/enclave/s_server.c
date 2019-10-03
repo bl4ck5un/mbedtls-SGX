@@ -1856,6 +1856,14 @@ reset:
     if( ( ret = mbedtls_net_accept_ocall( &listen_fd, &client_fd,
                     client_ip, sizeof( client_ip ), &cliip_len ) ) != 0 )
     {
+      // cliip_len is size_t, so < 0 check is not required
+      if (cliip_len > sizeof(client_ip)) {
+        mbedtls_printf(
+            " mbedtls_net_accept_ocall() returns invalid client ip length.\n");
+        ret = 0;
+        goto exit;
+      }
+
 #if !defined(_WIN32)
         if( received_sigterm )
         {
