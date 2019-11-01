@@ -166,4 +166,3 @@ cmake-build-debug
 *_u.h
 *_t.c
 *_t.h
-example/enclave/Enclave_t.{c,h}
