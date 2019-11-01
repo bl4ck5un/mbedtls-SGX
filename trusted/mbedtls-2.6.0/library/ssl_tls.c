@@ -2429,21 +2429,29 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    while( ssl->out_left > 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "message length: %d, out_left: %d",
-                       mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen, ssl->out_left ) );
+    while (ssl->out_left > 0) {
+      MBEDTLS_SSL_DEBUG_MSG(2, ("message length: %d, out_left: %d",
+                                mbedtls_ssl_hdr_len(ssl) + ssl->out_msglen,
+                                ssl->out_left));
 
-        buf = ssl->out_hdr + mbedtls_ssl_hdr_len( ssl ) +
-              ssl->out_msglen - ssl->out_left;
-        ret = ssl->f_send( ssl->p_bio, buf, ssl->out_left );
+      buf = ssl->out_hdr + mbedtls_ssl_hdr_len(ssl) + ssl->out_msglen -
+            ssl->out_left;
+      ret = ssl->f_send(ssl->p_bio, buf, ssl->out_left);
 
-        MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_send", ret );
+      MBEDTLS_SSL_DEBUG_RET(2, "ssl->f_send", ret);
 
-        if( ret <= 0 )
-            return( ret );
+      if (ret <= 0)
+        return (ret);
 
-        ssl->out_left -= ret;
+      if ((size_t)ret > ssl->out_left ||
+          (INT_MAX > SIZE_MAX && ret > SIZE_MAX)) {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ("f_send returned %d bytes but only %lu bytes were sent", ret,
+                (unsigned long)ssl->out_left));
+        return (MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+      }
+
+      ssl->out_left -= ret;
     }
 
     for( i = 8; i > ssl_ep_len( ssl ); i-- )

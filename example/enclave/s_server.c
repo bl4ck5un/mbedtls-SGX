@@ -1863,6 +1863,7 @@ reset:
         ret = 0;
         goto exit;
       }
+
 #if !defined(_WIN32)
         if( received_sigterm )
         {
